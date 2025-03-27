@@ -15,6 +15,7 @@
 
     <exec_depend>egguard_custom_interfaces</exec_depend>
     <exec_depend>egguard_mode_manager</exec_depend>
+    <exec_depend>egguard_nav2_system</exec_depend>
     <export>
         <build_type>ament_cmake</build_type>
     </export>

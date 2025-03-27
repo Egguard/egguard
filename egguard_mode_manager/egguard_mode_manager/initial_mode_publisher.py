@@ -4,7 +4,7 @@ from egguard_custom_interfaces.msg import Mode
 class InitialModePublisher(Node):
     def __init__(self):
         super().__init__('initial_mode_publisher')
-        self.publisher = self.create_publisher(Mode, '/nav_mode', 10)
+        self.publisher = self.create_publisher(Mode, '/mode', 10)
         
         # Publicar el modo inicial
         msg = Mode()
