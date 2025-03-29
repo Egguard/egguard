@@ -30,7 +30,8 @@ setup(
     entry_points={
         'console_scripts': [
             'initial_pose_pub = egguard_nav2_system.initial_pose_pub:main',
-            'autonomous_controller = egguard_nav2_system.autonomous_controller:main'
+            'autonomous_controller = egguard_nav2_system.autonomous_controller:main',
+            'manual_controller = egguard_nav2_system.manual_controller:main',
         ],
     },
 )
