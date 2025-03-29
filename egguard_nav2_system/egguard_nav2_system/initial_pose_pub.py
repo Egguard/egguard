@@ -14,7 +14,7 @@ class InitialPosePublisher(Node):
         self.publisher_ = self.create_publisher(PoseWithCovarianceStamped, 'initialpose', 1)
         self.initial_pose_msg = self._create_initial_pose_msg()
 
-        self.timer_ = self.create_timer(0.5, self.publish_initial_pose)
+        self.publish_initial_pose()
 
     def _create_initial_pose_msg(self) -> PoseWithCovarianceStamped:
         """
@@ -38,10 +38,9 @@ class InitialPosePublisher(Node):
 
 def main(args=None) -> None:
     """Initializes the node and starts publishing the initial pose."""
-    rclpy.init(args=args)
-    node = InitialPosePublisher()
-    
     try:
+        rclpy.init(args=args)
+        node = InitialPosePublisher()
         rclpy.spin(node)
     except KeyboardInterrupt:
         pass
