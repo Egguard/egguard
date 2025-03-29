@@ -1,3 +1,6 @@
+"""
+Autonomous navigation controller
+"""
 import rclpy
 from rclpy.node import Node
 from nav2_msgs.action import FollowWaypoints
@@ -8,6 +11,7 @@ import math
 import time
 from pprint import pprint
 from egguard_mode_manager import qos_config
+from rclpy.exceptions import ROSInterruptException
 
 class AutonomousController(Node):
     """
@@ -32,12 +36,11 @@ class AutonomousController(Node):
             (3.0, -1.0, 0.0)
         ]
 
-        self.mode = "manual"  # Default mode
+        self.mode = "manual"
         self.current_goal_future = None  # No active goal
 
         qos_profile = qos_config.get_common_qos_profile()
 
-        # Subscribe to the /mode topic
         self.mode_subscription = self.create_subscription(
             Mode,
             '/mode',
@@ -154,16 +157,18 @@ class AutonomousController(Node):
             self.last_feedback_print_time = current_time
 
 
-def main():
+def main(args=None) -> None:
     """
     Main entry point of the ROS 2 node. Initializes rclpy, 
     creates an instance of AutonomousController, and starts the event loop.
     """
-    rclpy.init()
-    controller = AutonomousController()
-    rclpy.spin(controller)
-    controller.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.init()
+        controller = AutonomousController()
+        rclpy.spin(controller)
+    finally: 
+        controller.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == '__main__':

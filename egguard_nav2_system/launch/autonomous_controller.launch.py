@@ -1,11 +1,19 @@
+"""
+Launch file for initializing autonomous navigation
+"""
 import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
 
-def generate_launch_description():
-
+def generate_launch_description() -> LaunchDescription:
+    """
+    Generates the launch description for autonomous navigation
+    
+    Returns:
+        LaunchDescription: The configured launch description.
+    """
     nav2_yaml = os.path.join(get_package_share_directory('egguard_nav2_system'), 'config', 'my_nav2_params.yaml')
  
     return LaunchDescription([

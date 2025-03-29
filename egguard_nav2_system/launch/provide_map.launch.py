@@ -1,10 +1,22 @@
+"""
+Launch file for initializing nodes in charge of map loading and position
+"""
 import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
+def generate_launch_description() -> LaunchDescription:
+    """
+    Generates the launch description for nodes which provide map and initialize position
+    
+    Returns:
+        LaunchDescription: The configured launch description.
+    """
 
-def generate_launch_description():
+    nav2_yaml = os.path.join(get_package_share_directory('egguard_nav2_system'), 'config', 'my_nav2_params.yaml')
+    map_file = os.path.join(get_package_share_directory('egguard_nav2_system'), 'config', 'my_map.yaml')
+    rviz_config_dir = os.path.join(get_package_share_directory('egguard_nav2_system'), 'config', 'rviz_config.rviz')
 
     nav2_yaml = os.path.join(get_package_share_directory('egguard_nav2_system'), 'config', 'my_nav2_params.yaml')
     map_file = os.path.join(get_package_share_directory('egguard_nav2_system'), 'config', 'my_map.yaml')
