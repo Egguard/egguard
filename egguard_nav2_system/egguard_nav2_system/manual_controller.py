@@ -3,10 +3,12 @@ Manual navigation controller
 """
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import PoseStamped
+from egguard_custom_interfaces.msg import ManualNav
 from egguard_custom_interfaces.msg import Mode
 import time
 from egguard_mode_manager import qos_config
+from geometry_msgs.msg import Twist
+from .manual_qos_config import get_manual_nav_qos_profile
 
 class ManualController(Node):
     """
@@ -24,6 +26,8 @@ class ManualController(Node):
         self.manual_nav_subscription = None
 
         self.qos_profile = qos_config.get_common_qos_profile()
+
+        self.cmd_vel_publisher = self.create_publisher(Twist, '/cmd_vel', 10)
 
         self.mode_subscription = self.create_subscription(
             Mode,
@@ -58,12 +62,13 @@ class ManualController(Node):
         """
         if self.mode == "manual":
             if self.manual_nav_subscription is None:
+                manual_nav_qos = get_manual_nav_qos_profile()
                 # Create the subscription only once when switching to manual mode.
                 self.manual_nav_subscription = self.create_subscription(
-                    PoseStamped,
+                    ManualNav,
                     '/manual_nav',
                     self.manual_nav_callback,
-                    self.qos_profile
+                    manual_nav_qos
                 )
                 self.get_logger().info("Started listening to /manual_nav for manual instructions...")
         else:
@@ -78,25 +83,46 @@ class ManualController(Node):
     def manual_nav_callback(self, msg):
         """
         Callback for processing incoming ManualNav messages on /manual_nav.
-        This is where the message is converted and published to /cmd_vel
+        Converts the received message into velocity commands and publishes to /cmd_vel.
 
         Parameters:
         -----------
         msg : ManualNav
-            Message containing the manual navigation isntructions.
-            it contains velocity, direction and stopNow.
-            
-            velocity is an integer between 0 and 100
-            direction can be "left", "right", "forward"
-            stopNow is a boolean indicating whether to stop the robot immediately.
+            Message containing the manual navigation instructions.
+            Attributes:
+            - velocity: int (0 to 100) representing the desired speed percentage.
+            - direction: str, one of "left", "right", "forward".
+            - stop_now: bool indicating whether to stop the robot immediately.
         """
-        # For now, we'll just log the received message.
-        self.get_logger().info(f"Received manual nav instruction: {msg}")
+        # Maximum velocities for TurtleBot3 Burger
+        max_linear_velocity = 0.22  # meters per second
+        max_angular_velocity = 2.84  # radians per second
 
-        # TODO: Map the PoseStamped to the appropriate velocity commands or actions.
-        # e.g., convert msg.pose into /cmd_vel commands.
-        # I have to somehow map what I'm gonna receive to the topic /cmd_vel
-        # This is a placeholder for the actual implementation
+        linear_x = 0.0
+        angular_z = 0.0
+
+        if msg.stop_now:
+            self.get_logger().info("Received stop command. Stopping the robot.")
+        else:
+            linear_x = (msg.velocity / 100.0) * max_linear_velocity
+
+            if msg.direction == "forward":
+                angular_z = 0.0
+            elif msg.direction == "left":
+                angular_z = max_angular_velocity
+            elif msg.direction == "right":
+                angular_z = -max_angular_velocity
+            else:
+                self.get_logger().warn(f"Unknown direction '{msg.direction}'. Stopping the robot.")
+                linear_x = 0.0
+                angular_z = 0.0
+
+        twist_msg = Twist()
+        twist_msg.linear.x = linear_x
+        twist_msg.angular.z = angular_z
+        self.cmd_vel_publisher.publish(twist_msg)
+
+        self.get_logger().info(f"Published cmd_vel: linear_x={linear_x:.2f}, angular_z={angular_z:.2f}")
 
 def main(args=None) -> None:
     """
