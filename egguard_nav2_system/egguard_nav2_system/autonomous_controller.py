@@ -7,14 +7,11 @@ from egguard_custom_interfaces.msg import Mode
 import math
 import time
 from pprint import pprint
-
+from egguard_mode_manager import qos_config
 
 class AutonomousController(Node):
     """
     A ROS 2 node that controls autonomous navigation using FollowWaypoints.
-    The node listens to the /mode topic and continuously checks if the mode 
-    is set to "autonomous". If so, it sends a list of waypoints to the 
-    FollowWaypoints action server.
     """
 
     def __init__(self):
@@ -30,20 +27,22 @@ class AutonomousController(Node):
 
         # List of waypoints (x, y, yaw)
         self.waypoints = [
-            (2.0, 3.0, 1.0),
-            (5.0, 6.0, 1.5),
-            (8.0, 7.0, 0.0)
+            (-2.0, 1.0, 1.0),
+            (0.0, 2.0, 1.5),
+            (3.0, -1.0, 0.0)
         ]
 
         self.mode = "manual"  # Default mode
         self.current_goal_future = None  # No active goal
-        
+
+        qos_profile = qos_config.get_common_qos_profile()
+
         # Subscribe to the /mode topic
         self.mode_subscription = self.create_subscription(
             Mode,
             '/mode',
             self.mode_callback,
-            10
+            qos_profile
         )
 
         # Timer to check mode periodically
@@ -71,6 +70,9 @@ class AutonomousController(Node):
         """
         if self.mode == "autonomous" and self.current_goal_future is None:
             self.send_waypoints()
+        else:
+            #Stop all the autonomous activity and waypoints following
+            pass
 
     def send_waypoints(self):
         """
