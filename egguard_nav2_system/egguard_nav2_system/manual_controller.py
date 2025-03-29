@@ -36,11 +36,10 @@ class ManualController(Node):
             self.qos_profile
         )
 
-        # Timer to check mode periodically
         self.timer = self.create_timer(1.0, self.check_mode_and_navigate)
 
         self.last_feedback_print_time = time.time() 
-        self.feedback_print_interval = 2  # Print feedback every 2 seconds
+        self.feedback_print_interval = 2 
 
     def mode_callback(self, msg):
         """
@@ -96,7 +95,7 @@ class ManualController(Node):
         """
         # Maximum velocities for TurtleBot3 Burger
         max_linear_velocity = 0.22  # meters per second
-        max_angular_velocity = 2.84  # radians per second
+        constant_angular_velocity = 0.40  # radians per second (the max is 2.84)
 
         linear_x = 0.0
         angular_z = 0.0
@@ -109,9 +108,9 @@ class ManualController(Node):
             if msg.direction == "forward":
                 angular_z = 0.0
             elif msg.direction == "left":
-                angular_z = max_angular_velocity
+                angular_z = constant_angular_velocity*(linear_x/max_linear_velocity) 
             elif msg.direction == "right":
-                angular_z = -max_angular_velocity
+                angular_z = -constant_angular_velocity*(linear_x/max_linear_velocity)
             else:
                 self.get_logger().warn(f"Unknown direction '{msg.direction}'. Stopping the robot.")
                 linear_x = 0.0
