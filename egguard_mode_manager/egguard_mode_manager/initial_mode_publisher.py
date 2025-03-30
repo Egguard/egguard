@@ -25,7 +25,7 @@ class InitialModePublisher(Node):
             self.publisher = self.create_publisher(Mode, '/mode', qos_profile)
 
             msg = Mode()
-            msg.mode = 'manual'
+            msg.mode = 'autonomous'
             self.publisher.publish(msg)
             self.get_logger().info('Initial mode published: autonomous')
         
