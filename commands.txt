@@ -1,0 +1,25 @@
+#POR ORDEN: CUSTOM_INTERFACES, MODE_MANAGER, NAV2_SYSTEM, MY_WORLD
+colcon build --packages-select egguard_nav2_system
+source ./install/setup.bash
+
+#WORLD (CAMBIAR POR LA RUTA DONDE TENGAS EL PROYECTO)
+export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:/home/ubuntu/Documentos/Proyecto_Robotica/egguard/egguard_my_world/models/model_editor_models 
+ros2 launch egguard_my_world turtlebot3_egguard_my_world.launch.py
+
+#EL QUE SE ENCARGA DE CARGAR MAPA Y SITUAR AL ROBOT AL PRINCIPIOP CON AMCL
+ros2 launch egguard_nav2_system provide_map.launch.py use_sim_time:=True
+
+#EL QUE SE ENCARGA DE CARGAR EL MAPA
+ros2 service call /map_server/load_map nav2_msgs/srv/LoadMap "{map_url: $HOME//home/ubuntu/Documentos/Proyecto_Robotica/egguard/egguard_nav2_system/config/my_map.yaml}"
+
+#SITUA EL ROBOT EN EL MAPA
+ros2 run egguard_nav2_system initial_pose_pub
+
+#INICIA LOS NODOS DE NAVEGACION AUTONOMA DE NAV2
+ros2 launch egguard_nav2_system autonomous_controller.launch.py
+
+#ESTE PONE EL MODO INICIAL, MODO AUTONOMO
+ros2 launch egguard_mode_manager initial_mode_publisher.launch.py
+
+#ESTE CORRE EL NODO NUESTRO DE NAVEGACION AUTONOMA
+ros2 run egguard_nav2_system autonomous_controller
