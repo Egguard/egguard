@@ -1,4 +1,4 @@
-image: image: /home/juan/egguard/egguard_nav2_system/config/my_map.pgm # cambiar "juan" por el nombre de usuario
+image: /home/manu/egguard/egguard_nav2_system/config/my_map.pgm # cambiar "juan" por el nombre de usuario
 mode: trinary
 resolution: 0.05
 origin: [-6.08, -10.3, 0]
