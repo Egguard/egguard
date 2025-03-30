@@ -39,6 +39,7 @@ endif()
 # Añadir la siguiente funcion
 rosidl_generate_interfaces(egguard_custom_interfaces
   "msg/Mode.msg"
+  "msg/ManualNav.msg"
 )
 ament_package()
 
