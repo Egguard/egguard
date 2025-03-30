@@ -9,39 +9,37 @@ import time
 from egguard_mode_manager import qos_config
 from geometry_msgs.msg import Twist
 from .manual_qos_config import get_manual_nav_qos_profile
+from typing import Optional
 
 class ManualController(Node):
     """
     A ROS 2 node that controls Manual navigation listening to the topic /manual_nav.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initializes the ManualController node, subscribes to the /mode topic, ...
         """
         super().__init__('manual_controller')
 
-        self.mode = "autonomous"
+        self.mode: str = "autonomous"
 
-        self.manual_nav_subscription = None
-
+        self.manual_nav_subscription: Optional[rclpy.subscription.Subscription] = None
         self.qos_profile = qos_config.get_common_qos_profile()
-
-        self.cmd_vel_publisher = self.create_publisher(Twist, '/cmd_vel', 10)
-
-        self.mode_subscription = self.create_subscription(
+        self.cmd_vel_publisher: rclpy.publisher.Publisher = self.create_publisher(Twist, '/cmd_vel', 10)
+        
+        self.mode_subscription: rclpy.subscription.Subscription = self.create_subscription(
             Mode,
             '/mode',
             self.mode_callback,
             self.qos_profile
         )
+        
+        self.timer: rclpy.timer.Timer = self.create_timer(1.0, self.check_mode_and_navigate)
+        self.last_feedback_print_time: float = time.time()
+        self.feedback_print_interval: int = 2
 
-        self.timer = self.create_timer(1.0, self.check_mode_and_navigate)
-
-        self.last_feedback_print_time = time.time() 
-        self.feedback_print_interval = 2 
-
-    def mode_callback(self, msg):
+    def mode_callback(self, msg: Mode) -> None:
         """
         Callback method that updates the robot's mode when a message is received on /mode.
 
@@ -53,7 +51,7 @@ class ManualController(Node):
         self.mode = msg.mode
         self.get_logger().info(f"Current mode: {self.mode}")
 
-    def check_mode_and_navigate(self):
+    def check_mode_and_navigate(self) -> None:
         """
         Periodically checks if the robot is in "manual" mode. 
         If so, it ensures that a subscription to /manual_nav exists.
@@ -79,7 +77,7 @@ class ManualController(Node):
             # TODO: Implement logic to stop the robot or switch to another mode if needed.       
             pass
 
-    def manual_nav_callback(self, msg):
+    def manual_nav_callback(self, msg: ManualNav) -> None:
         """
         Callback for processing incoming ManualNav messages on /manual_nav.
         Converts the received message into velocity commands and publishes to /cmd_vel.
@@ -94,17 +92,18 @@ class ManualController(Node):
             - stop_now: bool indicating whether to stop the robot immediately.
         """
         # Maximum velocities for TurtleBot3 Burger
-        max_linear_velocity = 0.22  # meters per second
-        constant_angular_velocity = 0.40  # radians per second (the max is 2.84)
+        max_linear_velocity: float = 0.22  # meters per second
+        constant_angular_velocity: float = 0.40  # radians per second (the max is 2.84)
 
-        linear_x = 0.0
-        angular_z = 0.0
+        linear_x: float = 0.0
+        angular_z: float  = 0.0
 
         if msg.stop_now:
             self.get_logger().info("Received stop command. Stopping the robot.")
         else:
             linear_x = (msg.velocity / 100.0) * max_linear_velocity
 
+            # TODO: stop hardcoding directions and add enum
             if msg.direction == "forward":
                 angular_z = 0.0
             elif msg.direction == "left":
@@ -123,7 +122,7 @@ class ManualController(Node):
 
         self.get_logger().info(f"Published cmd_vel: linear_x={linear_x:.2f}, angular_z={angular_z:.2f}")
 
-def main(args=None) -> None:
+def main(args: Optional[list] = None) -> None:
     """
     Main entry point of the ROS 2 node. Initializes rclpy, 
     creates an instance of AutonomousController, and starts the event loop.
