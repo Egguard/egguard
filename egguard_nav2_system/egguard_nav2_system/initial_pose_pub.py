@@ -25,7 +25,7 @@ class InitialPosePublisher(Node):
         """
         msg = PoseWithCovarianceStamped()
         msg.header.frame_id = 'map'
-        msg.pose.pose.position.x = 3.2
+        msg.pose.pose.position.x = 0.0
         msg.pose.pose.position.y = 0.0
         msg.pose.pose.orientation.w = 1.0  # Quaternion must be normalized
         return msg
