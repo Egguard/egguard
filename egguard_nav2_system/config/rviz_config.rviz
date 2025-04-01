@@ -146,7 +146,7 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz_default_plugins/RobotModel
       Collision Enabled: false
-      Description File: /home/juan/turtlebot3_ws/src/turtlebot3_simulations/turtlebot3_gazebo/urdf/turtlebot3_burger.urdf
+      Description File: turtlebot3_burger.urdf
       Description Source: File
       Description Topic:
         Depth: 5

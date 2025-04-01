@@ -18,7 +18,8 @@ setup(
         (os.path.join('share', package_name, 'launch'), glob('launch/*.launch.py')),
         (os.path.join('share', package_name, 'config'), glob('config/*.lua')),
         (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
-        (os.path.join('share', package_name, 'config'), glob('config/*.xml'))
+        (os.path.join('share', package_name, 'config'), glob('config/*.xml')),
+        (os.path.join('share', package_name, 'config'), glob('config/*.urdf'))
     ],
     install_requires=['setuptools'],
     zip_safe=True,
