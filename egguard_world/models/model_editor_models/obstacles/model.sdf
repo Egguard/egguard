@@ -1,6 +1,6 @@
 <?xml version='1.0'?>
 <sdf version='1.7'>
-  <model name='Obstaculos'>
+  <model name='obstacles'>
     <link name='link_3_0'>
       <inertial>
         <mass>1</mass>

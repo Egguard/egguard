@@ -14,7 +14,7 @@ def generate_launch_description():
     # Definir rutas de archivos
     world_file_name = 'world/' + TURTLEBOT3_MODEL + '.model'
     urdf_file_name = 'urdf/turtlebot3_' + TURTLEBOT3_MODEL + '.urdf'
-    pkg_share = FindPackageShare(package='egguard_my_world').find('egguard_my_world')
+    pkg_share = FindPackageShare(package='egguard_world').find('egguard_world')
     gazebo_models_path = os.path.join(pkg_share, 'models', 'model_editor_models')
 
     # Configurar la variable de entorno GAZEBO_MODEL_PATH

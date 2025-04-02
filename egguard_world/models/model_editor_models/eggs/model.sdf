@@ -1,6 +1,6 @@
 <?xml version='1.0'?>
 <sdf version='1.7'>
-  <model name='Huevos'>
+  <model name='eggs'>
     <link name='link_8_clone_14'>
       <inertial>
         <mass>1</mass>
@@ -23,7 +23,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -50,7 +50,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -123,7 +123,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -150,7 +150,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -223,7 +223,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -250,7 +250,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -323,7 +323,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -350,7 +350,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -423,7 +423,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -450,7 +450,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -523,7 +523,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -550,7 +550,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -623,7 +623,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -650,7 +650,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -723,7 +723,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -750,7 +750,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -823,7 +823,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -850,7 +850,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -923,7 +923,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -950,7 +950,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1023,7 +1023,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1050,7 +1050,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1123,7 +1123,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1150,7 +1150,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1223,7 +1223,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1250,7 +1250,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1323,7 +1323,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1350,7 +1350,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1423,7 +1423,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1450,7 +1450,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1523,7 +1523,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1550,7 +1550,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1623,7 +1623,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1650,7 +1650,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1723,7 +1723,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1750,7 +1750,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1823,7 +1823,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1850,7 +1850,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1923,7 +1923,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -1950,7 +1950,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2023,7 +2023,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2050,7 +2050,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2123,7 +2123,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2150,7 +2150,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2223,7 +2223,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2250,7 +2250,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2323,7 +2323,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2350,7 +2350,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2423,7 +2423,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2450,7 +2450,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2523,7 +2523,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2550,7 +2550,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2623,7 +2623,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2650,7 +2650,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2723,7 +2723,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2750,7 +2750,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2823,7 +2823,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2850,7 +2850,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2923,7 +2923,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -2950,7 +2950,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -3023,7 +3023,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -3050,7 +3050,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -3123,7 +3123,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -3150,7 +3150,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -3223,7 +3223,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -3250,7 +3250,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -3323,7 +3323,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -3350,7 +3350,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -3423,7 +3423,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -3450,7 +3450,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -3523,7 +3523,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -3550,7 +3550,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -3623,7 +3623,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -3650,7 +3650,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -3723,7 +3723,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -3750,7 +3750,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -3823,7 +3823,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
@@ -3850,7 +3850,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://Huevos/../objectos/egg/egg.stl</uri>
+            <uri>/egg.stl</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>

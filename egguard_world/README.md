@@ -37,7 +37,7 @@ Located in `urdf/` directory:
 
 ### Main Launch File
 
-- `turtlebot3_egguard_my_world.launch.py`
+- `egguard_world.launch.py`
   - Launches Gazebo server with the custom world
   - Launches Gazebo client for visualization
   - Sets up robot state publisher
@@ -65,7 +65,7 @@ The package sets up:
 To launch the simulation:
 
 ```bash
-ros2 launch my_world_egguard turtlebot3_egguard_my_world.launch.py
+ros2 launch my_world_egguard egguard_world.launch.py
 ```
 
 ## Design Considerations

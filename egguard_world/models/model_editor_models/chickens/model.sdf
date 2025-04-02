@@ -1,6 +1,6 @@
 <?xml version='1.0'?>
 <sdf version='1.7'>
-  <model name='Gallinas'>
+  <model name='chickens'>
     <link name='link_6'>
       <inertial>
         <mass>1</mass>
@@ -23,7 +23,7 @@
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <mesh>
-            <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+            <uri>/Chicken.obj</uri>
             <scale>0.015 0.015 0.015</scale>
           </mesh>
         </geometry>
