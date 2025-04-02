@@ -73,7 +73,7 @@ Follow these steps in order to launch the complete system:
 export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:/path/to/your/egguard/my_world_egguard/models/model_editor_models
 
 # Launch the world
-ros2 launch my_world_egguard turtlebot3_egguard_my_world.launch.py
+ros2 launch egguard_world egguard_world.launch.py
 ```
 
 2. **Load the Map and Initialize Navigation**

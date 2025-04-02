@@ -2,14 +2,14 @@
 colcon build --packages-select egguard_nav2_system
 source ./install/setup.bash
 
-#WORLD 
-ros2 launch egguard_my_world turtlebot3_egguard_my_world.launch.py
+#WORLD
+ros2 launch egguard_world egguard_world.launch.py
 
 #EL QUE SE ENCARGA DE CARGAR MAPA Y SITUAR AL ROBOT AL PRINCIPIOP CON AMCL
 ros2 launch egguard_nav2_system provide_map.launch.py use_sim_time:=True
 
-#EL QUE SE ENCARGA DE CARGAR EL MAPA (CAMBIAR POR LA RUTA DONDE TENGAS EL PROYECTO)
-ros2 service call /map_server/load_map nav2_msgs/srv/LoadMap "{map_url: $HOME/Documentos/Proyecto_Robotica/egguard/egguard_nav2_system/config/my_map.yaml}"
+#EL QUE SE ENCARGA DE CARGAR EL MAPA
+ros2 service call /map_server/load_map nav2_msgs/srv/LoadMap "{map_url: $HOME/egguard/egguard_nav2_system/config/my_map.yaml}"
 
 #SITUA EL ROBOT EN EL MAPA
 ros2 run egguard_nav2_system initial_pose_pub
