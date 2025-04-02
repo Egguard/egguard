@@ -108,7 +108,9 @@
       <elevation>0</elevation>
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
-    <model name='burger'>
+
+
+    <model name='turtlebot3_burger_pi'>
       <pose>0 0 0.01 0 -0 0</pose>
       <link name='base_footprint'>
         <self_collide>0</self_collide>
@@ -165,7 +167,7 @@
           <pose>-0.032 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>model://turtlebot3_common/meshes/burger_base.dae</uri>
+              <uri>model://turtlebot3_burger/meshes/burger_base.dae</uri>
               <scale>0.001 0.001 0.001</scale>
             </mesh>
           </geometry>
@@ -283,7 +285,7 @@
           <pose>-0.032 0 0.171 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>model://turtlebot3_common/meshes/lds.dae</uri>
+              <uri>model://turtlebot3_burger/meshes/lds.dae</uri>
               <scale>0.001 0.001 0.001</scale>
             </mesh>
           </geometry>
@@ -382,7 +384,7 @@
           <pose>0 0.08 0.023 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>model://turtlebot3_common/meshes/tire.dae</uri>
+              <uri>model://turtlebot3_burger/meshes/tire.dae</uri>
               <scale>0.001 0.001 0.001</scale>
             </mesh>
           </geometry>
@@ -443,7 +445,7 @@
           <pose>0 -0.08 0.023 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>model://turtlebot3_common/meshes/tire.dae</uri>
+              <uri>model://turtlebot3_burger/meshes/tire.dae</uri>
               <scale>0.001 0.001 0.001</scale>
             </mesh>
           </geometry>
@@ -493,6 +495,66 @@
           </surface>
           <max_contacts>10</max_contacts>
         </collision>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <link name='camera_link'>
+        <self_collide>0</self_collide>
+        <inertial>
+          <pose>0 0 0 0 -0 0</pose>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+          <mass>1</mass>
+        </inertial>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <link name='camera_rgb_optical_frame'>
+        <inertial>
+          <pose>0.076 0 0.093 0 -0 0</pose>
+          <inertia>
+            <ixx>0.001</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.001</iyy>
+            <iyz>0</iyz>
+            <izz>0.001</izz>
+          </inertia>
+          <mass>0.035</mass>
+        </inertial>
+        <pose>0.063 0 0.093 0 -0 0</pose>
+        <sensor name='camera' type='camera'>
+          <always_on>1</always_on>
+          <visualize>1</visualize>
+          <update_rate>30</update_rate>
+          <camera name='picam'>
+            <horizontal_fov>1.0856</horizontal_fov>
+            <image>
+              <width>640</width>
+              <height>480</height>
+              <format>R8G8B8</format>
+            </image>
+            <clip>
+              <near>0.03</near>
+              <far>100</far>
+            </clip>
+            <noise>
+              <type>gaussian</type>
+              <mean>0</mean>
+              <stddev>0.007</stddev>
+            </noise>
+          </camera>
+          <plugin name='camera_driver' filename='libgazebo_ros_camera.so'>
+            <ros/>
+          </plugin>
+        </sensor>
         <self_collide>0</self_collide>
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
@@ -562,6 +624,30 @@
           </limit>
         </axis>
       </joint>
+      <joint name='camera_joint' type='fixed'>
+        <parent>base_link</parent>
+        <child>camera_link</child>
+        <pose>0.063 -0.011 0.084 0 -0 0</pose>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit>
+            <lower>-1e+16</lower>
+            <upper>1e+16</upper>
+          </limit>
+        </axis>
+      </joint>
+      <joint name='camera_rgb_joint' type='fixed'>
+        <parent>camera_link</parent>
+        <child>camera_rgb_optical_frame</child>
+        <pose>0.003 0.011 0.009 0 -0 0</pose>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit>
+            <lower>-1e+16</lower>
+            <upper>1e+16</upper>
+          </limit>
+        </axis>
+      </joint>
       <plugin name='turtlebot3_diff_drive' filename='libgazebo_ros_diff_drive.so'>
         <ros/>
         <update_rate>30</update_rate>
@@ -588,12 +674,13 @@
         <joint_name>wheel_right_joint</joint_name>
       </plugin>
     </model>
+
     <state world_name='default'>
       <sim_time>214 249000000</sim_time>
       <real_time>245 154241204</real_time>
       <wall_time>1743269612 777531310</wall_time>
       <iterations>213855</iterations>
-      <model name='Gallinas'>
+      <model name='chickens'>
         <pose>-0.380144 0.044621 2.72977 0.262332 -0.109409 -0.016832</pose>
         <scale>1 1 1</scale>
         <link name='link_6'>
@@ -763,7 +850,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='Huevos'>
+      <model name='eggs'>
         <pose>-0.580296 3.13274 0.035139 5.9e-05 0.000702 0</pose>
         <scale>1 1 1</scale>
         <link name='link_8_clone_14'>
@@ -1001,7 +1088,7 @@
           <wrench>6.3e-05 -5e-06 0.575903 0 -0 0</wrench>
         </link>
       </model>
-      <model name='Obstaculos'>
+      <model name='obstacles'>
         <pose>1.83921 -0.22525 0.790085 0.10835 -0.209821 0.012055</pose>
         <scale>1 1 1</scale>
         <link name='link_3_0'>
@@ -2293,7 +2380,7 @@
       </link>
       <static>1</static>
     </model>
-    <model name='Huevos'>
+    <model name='eggs'>
       <link name='link_8_clone_14'>
         <inertial>
           <mass>1</mass>
@@ -2316,7 +2403,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -2343,7 +2430,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -2416,7 +2503,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -2443,7 +2530,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -2516,7 +2603,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -2543,7 +2630,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -2616,7 +2703,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -2643,7 +2730,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -2716,7 +2803,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -2743,7 +2830,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -2816,7 +2903,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -2843,7 +2930,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -2916,7 +3003,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -2943,7 +3030,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3016,7 +3103,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3043,7 +3130,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3116,7 +3203,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3143,7 +3230,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3216,7 +3303,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3243,7 +3330,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3316,7 +3403,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3343,7 +3430,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3416,7 +3503,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3443,7 +3530,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3516,7 +3603,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3543,7 +3630,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3616,7 +3703,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3643,7 +3730,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3716,7 +3803,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3743,7 +3830,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3816,7 +3903,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3843,7 +3930,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3916,7 +4003,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -3943,7 +4030,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4016,7 +4103,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4043,7 +4130,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4116,7 +4203,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4143,7 +4230,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4216,7 +4303,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4243,7 +4330,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4316,7 +4403,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4343,7 +4430,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4416,7 +4503,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4443,7 +4530,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4516,7 +4603,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4543,7 +4630,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4616,7 +4703,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4643,7 +4730,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4716,7 +4803,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4743,7 +4830,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4816,7 +4903,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4843,7 +4930,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4916,7 +5003,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -4943,7 +5030,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5016,7 +5103,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5043,7 +5130,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5116,7 +5203,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5143,7 +5230,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5216,7 +5303,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5243,7 +5330,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5316,7 +5403,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5343,7 +5430,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5416,7 +5503,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5443,7 +5530,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5516,7 +5603,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5543,7 +5630,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5616,7 +5703,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5643,7 +5730,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5716,7 +5803,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5743,7 +5830,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5816,7 +5903,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5843,7 +5930,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5916,7 +6003,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -5943,7 +6030,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -6016,7 +6103,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -6043,7 +6130,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -6116,7 +6203,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../model_editor_models//eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -6143,7 +6230,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Huevos/egg.stl</uri>
+              <uri>../models/model_editor_models/eggs/egg.stl</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -6198,7 +6285,7 @@
       <allow_auto_disable>1</allow_auto_disable>
       <pose>-0.580322 3.13274 0.022042 0 -0 0</pose>
     </model>
-    <model name='Obstaculos'>
+    <model name='obstacles'>
       <link name='link_3_0'>
         <inertial>
           <mass>1</mass>
@@ -7581,7 +7668,7 @@
       <allow_auto_disable>1</allow_auto_disable>
       <pose>1.83921 -0.225249 0.790087 0.10835 -0.209821 0.012055</pose>
     </model>
-    <model name='Gallinas'>
+    <model name='chickens'>
       <link name='link_6'>
         <inertial>
           <mass>1</mass>
@@ -7604,7 +7691,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+                <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -7631,7 +7718,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -7704,7 +7791,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -7731,7 +7818,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -7804,7 +7891,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -7831,7 +7918,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -7904,7 +7991,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -7931,7 +8018,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8004,7 +8091,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8031,7 +8118,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8104,7 +8191,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8131,7 +8218,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8204,7 +8291,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8231,7 +8318,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8304,7 +8391,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8331,7 +8418,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8404,7 +8491,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8431,7 +8518,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8504,7 +8591,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8531,7 +8618,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8604,7 +8691,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8631,7 +8718,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8704,7 +8791,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8731,7 +8818,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8804,7 +8891,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8831,7 +8918,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8904,7 +8991,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -8931,7 +9018,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -9004,7 +9091,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -9031,7 +9118,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -9104,7 +9191,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -9131,7 +9218,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -9204,7 +9291,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -9231,7 +9318,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -9304,7 +9391,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -9331,7 +9418,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -9404,7 +9491,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
@@ -9431,7 +9518,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/home/manu/egguard/egguard_my_world/models/model_editor_models/Gallinas/Chicken.obj</uri>
+              <uri>../models/model_editor_models/chickens/Chicken.obj</uri>
               <scale>0.015 0.015 0.015</scale>
             </mesh>
           </geometry>
