@@ -14,7 +14,7 @@ Egguard is an innovative ROS2-based robotic system designed to automate and enha
 
 ## Prerequisites
 
-- ROS2 Humble
+- ROS2 Galactic
 - Gazebo
 - Nav2 Stack
 - Python 3.8+
