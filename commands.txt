@@ -19,13 +19,22 @@ ros2 launch egguard_mode_manager initial_mode_publisher.launch.py
 
 PARA AUTONOMO:
 
-#INICIA LOS NODOS DE NAVEGACION AUTONOMA DE NAV2
-ros2 launch egguard_nav2_system autonomous_controller.launch.py
+    #INICIA LOS NODOS DE NAVEGACION AUTONOMA DE NAV2
+    ros2 launch egguard_nav2_system autonomous_controller.launch.py
 
-#ESTE CORRE EL NODO NUESTRO DE NAVEGACION AUTONOMA
-ros2 run egguard_nav2_system autonomous_controller
+    #ESTE CORRE EL NODO NUESTRO DE NAVEGACION AUTONOMA
+    ros2 run egguard_nav2_system autonomous_controller
 
-O PARA MANUAL SOLO:
+PARA PROBAR EL ROSWEB MANUAL:
 
-#ESTE CORRE EL NODO NUESTRO DE NAVEGACION MANUAL
-ros2 launch egguard_nav2_system manual_controller.launch.py
+    rosenv
+    sudo apt update
+    sudo apt install ros-galactic-rosbridge-suite
+
+    # Empieza a escuchar por el puerto 9090 para aceptar conexiones
+    ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+
+    # Lanza el nodo manual
+    ros2 launch egguard_nav2_system manual_controller.launch.py
+
+    then on egguard-frontend npm run dev and press the buttons
