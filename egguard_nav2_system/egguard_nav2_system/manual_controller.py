@@ -34,10 +34,6 @@ class ManualController(Node):
             self.mode_callback,
             self.qos_profile
         )
-        
-        self.timer: rclpy.timer.Timer = self.create_timer(1.0, self.check_mode_and_navigate)
-        self.last_feedback_print_time: float = time.time()
-        self.feedback_print_interval: int = 2
 
     def mode_callback(self, msg: Mode) -> None:
         """
@@ -51,31 +47,29 @@ class ManualController(Node):
         self.mode = msg.mode
         self.get_logger().info(f"Current mode: {self.mode}")
 
-    def check_mode_and_navigate(self) -> None:
-        """
-        Periodically checks if the robot is in "manual" mode. 
-        If so, it ensures that a subscription to /manual_nav exists.
-        If not, it removes the subscription to stop manual activity.
-        """
-        if self.mode == "manual":
-            if self.manual_nav_subscription is None:
-                manual_nav_qos = get_manual_nav_qos_profile()
-                # Create the subscription only once when switching to manual mode.
-                self.manual_nav_subscription = self.create_subscription(
-                    ManualNav,
-                    '/manual_nav',
-                    self.manual_nav_callback,
-                    manual_nav_qos
-                )
-                self.get_logger().info("Started listening to /manual_nav for manual instructions...")
-        else:
-            # If not in manual mode and a subscription exists, unregister it.
-            if self.manual_nav_subscription is not None:
-                self.destroy_subscription(self.manual_nav_subscription)
-                self.manual_nav_subscription = None
-                self.get_logger().info("Stopped listening to /manual_nav (switched mode).")
-            # TODO: Implement logic to stop the robot or switch to another mode if needed.       
-            pass
+        if self.mode == "manual" and self.manual_nav_subscription is None:
+            manual_nav_qos = get_manual_nav_qos_profile()
+            # Create the subscription only once when switching to manual mode.
+            self.manual_nav_subscription = self.create_subscription(
+                ManualNav,
+                '/manual_nav',
+                self.manual_nav_callback,
+                manual_nav_qos
+            )
+            self.get_logger().info("Started listening to /manual_nav for manual instructions...")
+        elif self.mode != "manual" and self.manual_nav_subscription is not None:
+            #It is important to destroy suscription first so that manual_nav_callback doesnt get executed and mess up
+            self.destroy_subscription(self.manual_nav_subscription)
+            self.manual_nav_subscription = None
+            self.get_logger().info("Stopped listening to /manual_nav (switched mode).")
+
+            linear_x = 0.0
+            angular_z = 0.0
+
+            twist_msg = Twist()
+            twist_msg.linear.x = linear_x
+            twist_msg.angular.z = angular_z
+            self.cmd_vel_publisher.publish(twist_msg)
 
     def manual_nav_callback(self, msg: ManualNav) -> None:
         """
