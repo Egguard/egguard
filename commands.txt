@@ -2,8 +2,9 @@
 colcon build --packages-select egguard_nav2_system
 source ./install/setup.bash
 
-#WORLD
-ros2 launch egguard_world egguard_world.launch.py
+#WORLD (CAMBIAR POR LA RUTA DONDE TENGAS EL PROYECTO)
+export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:/home/juan/egguard/egguard_my_world/models/model_editor_models 
+ros2 launch egguard_my_world turtlebot3_egguard_my_world.launch.py
 
 #EL QUE SE ENCARGA DE CARGAR MAPA Y SITUAR AL ROBOT AL PRINCIPIOP CON AMCL
 ros2 launch egguard_nav2_system provide_map.launch.py use_sim_time:=True

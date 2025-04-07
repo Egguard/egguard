@@ -31,7 +31,7 @@ class AutonomousController(Node):
 
         # List of waypoints (x, y, yaw)
         self.waypoints = [
-            (-2.3, 4.44, 1.0),
+            (2.0, 1.44, 1.0),
             (0.8, 7.0, 1.5),
             (0.2, -6.6, 0.0)
         ]
