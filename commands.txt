@@ -73,6 +73,7 @@ ros2 run nav2_map_server map_saver_cli -f $HOME/Escritorio
 
 #terminal 1:
 cd egguard/
+source ./install/setup.bash
 ros2 launch egguard_world egguard_world.launch.py
 
 #terminal 2:
@@ -80,18 +81,18 @@ cd video_web_test/prueba_camara
 ros2 launch rosbridge_server rosbridge_websocket_launch.xml
 
 #terminal 3: lanzamos el servidor de vídeo
-cd egguard/
+cd ../../ #deberia volver a /egguard
 ros2 run web_video_server web_video_server
 
 #Prueba opcional navegador
 http://0.0.0.0:8080/stream?topic=/camera/image_raw
 
-#De ser necesario cargar servicios u otros elementos, por ejemplo, para mover el robot
+#De ser necesario cargar servicios u otros elementos, por ejemplo, para mover el robot desde la web
 
 #terminal 4:
 python3 -m http.server 8000
 
 #Probar página web con código js
-http://localhost:8000
+http://localhost:8000 #entrar en /video_web_test/prueba_camara/ para testeo con ws://127.0.0.1:9090/
 
 
