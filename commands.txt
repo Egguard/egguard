@@ -1,9 +1,11 @@
-#POR ORDEN: CUSTOM_INTERFACES, MODE_MANAGER, NAV2_SYSTEM, MY_WORLD
+>>>>>>>>>> #COMPILAR
+
+#POR ORDEN: CUSTOM_INTERFACES, MODE_MANAGER, NAV2_SYSTEM, WORLD, ASYNC_WEB_SERVER_CPP, WEB_VIDEO_SERVER
 colcon build --packages-select egguard_nav2_system
 source ./install/setup.bash
 
 #WORLD (CAMBIAR POR LA RUTA DONDE TENGAS EL PROYECTO)
-export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:/home/juan/egguard/egguard_world/models/model_editor_models 
+export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH: $HOME/egguard/egguard_world/models/model_editor_models 
 ros2 launch egguard_world turtlebot3_egguard_world.launch.py
 
 #EL QUE SE ENCARGA DE CARGAR MAPA Y SITUAR AL ROBOT AL PRINCIPIOP CON AMCL
@@ -39,3 +41,54 @@ PARA PROBAR EL ROSWEB MANUAL:
     ros2 launch egguard_nav2_system manual_controller.launch.py
 
     then on egguard-frontend npm run dev and press the buttons
+
+
+>>>>>>>>>> # PARA PROBAR CON ROBOT REAL
+
+#terminal 1
+>>>Meterse al wifi que toca<<< (ver pdf de conexiones)
+ssh ubuntu@192.168.0.133
+ros2 launch turtlebot3_bringup robot.launch.py
+
+
+#terminal 2
+export ROS_DOMAIN_ID=80
+source ./install/setup.bash
+ros2 launch turtlebot3_cartographer cartographer.launch.py use_sim_time:=False
+
+
+#terminal 3
+cd $HOME/turtlebot3_ws/
+ros2 run turtlebot3_teleop teleop_keyboard
+
+#terminal 4
+ros2 run nav2_map_server map_saver_cli -f $HOME/Escritorio
+
+
+
+>>>>>>>>>> # PARA PROBAR EJEMPLO DE CAMARA EN WEB 
+
+#terminal 1:
+cd egguard/
+ros2 launch egguard_world egguard_world.launch.py
+
+#terminal 2:
+cd video_web_test/prueba_camara
+ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+
+#terminal 3: lanzamos el servidor de vídeo
+cd egguard/
+ros2 run web_video_server web_video_server
+
+#Prueba opcional navegador
+http://0.0.0.0:8080/stream?topic=/camera/image_raw
+
+#De ser necesario cargar servicios u otros elementos, por ejemplo, para mover el robot
+
+#terminal 4:
+python3 -m http.server 8000
+
+#Probar página web con código js
+http://localhost:8000
+
+
