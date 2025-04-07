@@ -18,10 +18,6 @@ def generate_launch_description() -> LaunchDescription:
     map_file = os.path.join(get_package_share_directory('egguard_nav2_system'), 'config', 'my_map.yaml')
     rviz_config_dir = os.path.join(get_package_share_directory('egguard_nav2_system'), 'config', 'rviz_config.rviz')
 
-    nav2_yaml = os.path.join(get_package_share_directory('egguard_nav2_system'), 'config', 'my_nav2_params.yaml')
-    map_file = os.path.join(get_package_share_directory('egguard_nav2_system'), 'config', 'my_map.yaml')
-    rviz_config_dir = os.path.join(get_package_share_directory('egguard_nav2_system'), 'config', 'rviz_config.rviz')
-
     return LaunchDescription([
         Node(
             package = 'nav2_map_server',
