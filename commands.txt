@@ -4,8 +4,10 @@
 colcon build --packages-select egguard_nav2_system
 source ./install/setup.bash
 
-#WORLD (CAMBIAR POR LA RUTA DONDE TENGAS EL PROYECTO)
-export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH: $HOME/egguard/egguard_world/models/model_editor_models 
+#WORLD (LA PRIMERA VEZ QUE ABRAS EL GAZEBO, CAMBIAR POR LA RUTA DONDE TENGAS EL PROYECTO)
+export GAZEBO_MODEL_DATABASE_URI="" #para no intentar cargar modelos 3d de webs gazebo 
+export GAZEBO_MODEL_PATH=$HOME/egguard/install/egguard_world/share/egguard_world/models/model_editor_models:$HOME/egguard/install/egguard_world/share/egguard_world/models
+
 ros2 launch egguard_world egguard_world.launch.py
 
 #EL QUE SE ENCARGA DE CARGAR MAPA Y SITUAR AL ROBOT AL PRINCIPIOP CON AMCL
@@ -96,3 +98,9 @@ python3 -m http.server 8000
 http://localhost:8000 #entrar en /video_web_test/prueba_camara/ para testeo con ws://127.0.0.1:9090/
 
 
+>>>>>>>>>> PARA CERRAR GAZEBO SI SE QUEDA PILLADO
+
+#terminal
+
+ps #saldrá lista de procesos activos, busca uno que se llame gzclient
+kill NUMERO_PROCESO
