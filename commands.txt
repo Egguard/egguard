@@ -16,6 +16,9 @@ ros2 launch egguard_nav2_system provide_map.launch.py use_sim_time:=True
 #EL QUE SE ENCARGA DE CARGAR EL MAPA
 ros2 service call /map_server/load_map nav2_msgs/srv/LoadMap "{map_url: $HOME/egguard/egguard_nav2_system/config/my_map.yaml}"
 
+#SITUA EL ROBOT EN EL MAPA
+#YA NO HACE FALTA HACER ESTE COMANDO ros2 run egguard_nav2_system initial_pose_pub
+
 #ESTE PONE EL MODO INICIAL
 ros2 launch egguard_mode_manager initial_mode_publisher.launch.py
 
@@ -41,7 +44,7 @@ PARA PROBAR EL ROSWEB MANUAL:
 
     #Jugar con manejo en terminal
     ros2 topic pub /manual_nav egguard_custom_interfaces/msg/ManualNav "{velocity: 100, direction: 'left', stop_now: true}"
-
+    ros2 topic pub --qos-durability transient_local /mode egguard_custom_interfaces/msg/Mode "{mode: 'manual'}"
     then on egguard-frontend npm run dev and press the buttons
 
 

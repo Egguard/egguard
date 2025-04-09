@@ -49,7 +49,7 @@ class AutonomousController(Node):
         )
 
         self.last_feedback_print_time = time.time() 
-        self.feedback_print_interval = 2  # Print feedback every 2 seconds
+        self.feedback_print_interval = 4 #In seconds
 
     def mode_callback(self, msg):
         """
@@ -78,7 +78,7 @@ class AutonomousController(Node):
         self.get_logger().info("Stopping autonomous navigation")
         
         # Cancel the goal if we have a valid goal handle
-        if self.goal_handle is not None and self.goal_handle.is_active:
+        if self.goal_handle is not None:
             self.get_logger().info("Canceling active navigation goal")
             cancel_future = self.goal_handle.cancel_goal_async()
             cancel_future.add_done_callback(self.cancel_done_callback)
@@ -93,12 +93,12 @@ class AutonomousController(Node):
             The future object from the cancel request.
         """
         cancel_response = future.result()
-        if cancel_response.return_code == 1:  # SUCCESS
+        if len(cancel_response.goals_canceling) > 0:
             self.current_goal_future = None
-            self.get_logger().info('Successfully canceled navigation goal')
+            self.get_logger().info('Cancelling of goal complete')
         else:
-            self.get_logger().warning(f'Failed to cancel goal, return code: {cancel_response.return_code}')
-        
+            self.get_logger().warning('Goal failed to cancel')
+
         # Reset goal handle after cancellation attempt
         self.goal_handle = None
 

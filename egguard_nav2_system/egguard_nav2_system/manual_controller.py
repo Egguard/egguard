@@ -63,6 +63,7 @@ class ManualController(Node):
             self.manual_nav_subscription = None
             self.get_logger().info("Stopped listening to /manual_nav (switched mode).")
 
+            #Stop robot with cmd_vel
             linear_x = 0.0
             angular_z = 0.0
 
