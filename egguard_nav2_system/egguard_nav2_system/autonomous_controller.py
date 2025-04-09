@@ -10,7 +10,8 @@ from egguard_custom_interfaces.msg import Mode
 import math
 import time
 from pprint import pprint
-from egguard_mode_manager import qos_config
+from egguard_mode_manager.utils import mode_qos_config, modes
+from typing import List, Tuple
 
 class AutonomousController(Node):
     """
@@ -28,30 +29,31 @@ class AutonomousController(Node):
         # Action client to send a sequence of waypoints
         self.action_client = ActionClient(self, FollowWaypoints, 'follow_waypoints')
 
-        # List of waypoints (x, y, yaw)
-        self.waypoints = [
+        # List of waypoints for autonomous navigation path(x, y, yaw)
+        self.waypoints: List[Tuple[float, float, float]] = [
             (2.0, 1.44, 1.0),
             (0.8, 7.0, 1.5),
             (0.2, -6.6, 0.0)
         ]
 
-        self.mode = "manual"
+        self.mode: str = modes.Mode.MANUAL
+
         self.current_goal_future = None  # No active goal
         self.goal_handle = None  # Store the goal handle for cancellation
 
-        qos_profile = qos_config.get_common_qos_profile()
+        qos_profile = mode_qos_config.get_mode_qos_profile()
 
         self.mode_subscription = self.create_subscription(
             Mode,
             '/mode',
-            self.mode_callback,
+            self.mode_suscription_callback,
             qos_profile
         )
 
         self.last_feedback_print_time = time.time() 
-        self.feedback_print_interval = 4 #In seconds
+        self.feedback_print_interval = 4  # In seconds
 
-    def mode_callback(self, msg):
+    def mode_suscription_callback(self, msg: Mode) -> None:
         """
         Callback method that updates the robot's mode when a message is received on /mode.
 
@@ -63,49 +65,39 @@ class AutonomousController(Node):
         self.mode = msg.mode
         self.get_logger().info(f"Mode changed to: {self.mode}")
 
-        if self.mode == "autonomous" and self.current_goal_future is None:
-            self.get_logger().info("Sending waypoints in check_mode_and_navigate() method")
-            self.send_waypoints()
-        if self.mode != "autonomous" and self.current_goal_future is not None:
-            #We may have a problem if the stop_autonomous_mode() fails or cancel not accepted
-            self.stop_autonomous_mode()
+        if self.mode == modes.Mode.AUTONOMOUS and self.current_goal_future is None:
+            self.start_autonomous_navigation()
+        if self.mode != modes.Mode.AUTONOMOUS and self.current_goal_future is not None:
+            #We may have a problem if the stop_autonomous_navigation() fails or cancel not accepted
+            self.stop_autonomous_navigation()
 
-    def stop_autonomous_mode(self):
+    def start_autonomous_navigation(self) -> None:
         """
-        Stops any ongoing autonomous navigation by canceling the current goal.
-        This allows manual control to take over.
+        Starts the autonomous navigation by building and sending waypoints 
+        to the FollowWaypoints action server.
         """
-        self.get_logger().info("Stopping autonomous navigation")
-        
-        # Cancel the goal if we have a valid goal handle
-        if self.goal_handle is not None:
-            self.get_logger().info("Canceling active navigation goal")
-            cancel_future = self.goal_handle.cancel_goal_async()
-            cancel_future.add_done_callback(self.cancel_done_callback)
-        
-    def cancel_done_callback(self, future):
-        """
-        Callback executed when a goal cancellation is completed.
-        
-        Parameters:
-        -----------
-        future : Future
-            The future object from the cancel request.
-        """
-        cancel_response = future.result()
-        if len(cancel_response.goals_canceling) > 0:
-            self.current_goal_future = None
-            self.get_logger().info('Cancelling of goal complete')
-        else:
-            self.get_logger().warning('Goal failed to cancel')
+        self.get_logger().info("Starting autonomous navigation")
 
-        # Reset goal handle after cancellation attempt
-        self.goal_handle = None
+        goal_msg = self.build_waypoints_goal_msg()
 
-    def send_waypoints(self):
+        self.action_client.wait_for_server()
+        self.get_logger().info(f"Sending {len(self.waypoints)} waypoints for autonomous navigation.")
+
+        # Send goal and add callbacks
+        future = self.action_client.send_goal_async(goal_msg, feedback_callback=self.feedback_callback)
+        future.add_done_callback(self.goal_response_callback)
+
+        # Track the current goal
+        self.current_goal_future = future
+
+    def build_waypoints_goal_msg(self) -> FollowWaypoints.Goal:
         """
-        Converts the waypoints list into a sequence of PoseStamped messages 
-        and sends them to the FollowWaypoints action server.
+        Builds a FollowWaypoints goal message from the current waypoints list.
+        
+        Returns:
+        --------
+        FollowWaypoints.Goal
+            The constructed goal message with PoseStamped waypoints.
         """
         goal_msg = FollowWaypoints.Goal()
         goal_msg.poses = []
@@ -119,19 +111,39 @@ class AutonomousController(Node):
             pose.pose.orientation.w = math.cos(yaw / 2)  # Quaternion conversion
             
             goal_msg.poses.append(pose)
+            
+        return goal_msg
 
-        # Wait for the action server
-        self.action_client.wait_for_server()
-        self.get_logger().info(f"Sending {len(self.waypoints)} waypoints for autonomous navigation.")
+    def stop_autonomous_navigation(self) -> None:
+        """
+        Stops any ongoing autonomous navigation by canceling the current goal.
+        This allows manual control to take over.
+        """
+        self.get_logger().info("Stopping autonomous navigation")
+        
+        if self.goal_handle is not None:
+            self.get_logger().info("Canceling active navigation goal")
+            cancel_future = self.goal_handle.cancel_goal_async()
+            cancel_future.add_done_callback(self.cancel_done_callback)
+        
+    def cancel_done_callback(self, future) -> None:
+        """
+        Callback executed when a goal cancellation is completed.
+        
+        Parameters:
+        -----------
+        future : Future
+            The future object from the cancel request.
+        """
+        cancel_response = future.result()
+        if len(cancel_response.goals_canceling) > 0:
+            self.goal_handle = None
+            self.current_goal_future = None
+            self.get_logger().info('Cancelling of goal complete')
+        else:
+            self.get_logger().warning('Goal failed to cancel')
 
-        # Send goal and add callbacks
-        future = self.action_client.send_goal_async(goal_msg, feedback_callback=self.feedback_callback)
-        future.add_done_callback(self.goal_response_callback)
-
-        # Track the current goal
-        self.current_goal_future = future
-
-    def goal_response_callback(self, future):
+    def goal_response_callback(self, future) -> None:
         """
         Callback executed when the goal is accepted or rejected.
 
@@ -155,7 +167,7 @@ class AutonomousController(Node):
         self._get_result_future = goal_handle.get_result_async()
         self._get_result_future.add_done_callback(self.get_result_callback)
 
-    def get_result_callback(self, future):
+    def get_result_callback(self, future) -> None:
         """
         Callback executed when the waypoints navigation is completed.
 
@@ -171,10 +183,10 @@ class AutonomousController(Node):
         self.current_goal_future = None
         self.goal_handle = None
 
-    def feedback_callback(self, feedback_msg):
+    def feedback_callback(self, feedback_msg) -> None:
         """
         Callback executed when feedback is received from FollowWaypoints.
-        It prints distance remaining and estimated time remaining every 2 seconds.
+        It prints feedback information at regular intervals defined by feedback_print_interval.
 
         Parameters:
         -----------
@@ -183,7 +195,7 @@ class AutonomousController(Node):
         """
         current_time = time.time()
 
-        # Check if 2 seconds have passed before printing feedback
+        # Check if enough time has passed before printing feedback
         if current_time - self.last_feedback_print_time >= self.feedback_print_interval:
             pprint(feedback_msg)
             self.last_feedback_print_time = current_time

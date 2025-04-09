@@ -5,29 +5,28 @@ Publishes the 'autonomous' mode to the '/mode' topic.
 """
 import rclpy
 from rclpy.node import Node
-from egguard_custom_interfaces.msg import Mode
-from egguard_mode_manager import qos_config
+from egguard_custom_interfaces.msg import Mode as ModeMsg
 from rclpy.exceptions import ROSInterruptException
-
+from .utils import mode_qos_config, modes
 
 class InitialModePublisher(Node):
     """
-    Node that publishes the robot's initial mode ('autonomous') to the '/mode' topic.
+    Node that publishes the robot's initial mode to the '/mode' topic.
     """
 
     def __init__(self) -> None:
         """
-        Initializes the node and publishes the 'autonomous' mode.
+        Initializes the node and publishes the initial mode.
         """
         try:
             super().__init__('initial_mode_publisher')
-            qos_profile = qos_config.get_common_qos_profile()
-            self.publisher = self.create_publisher(Mode, '/mode', qos_profile)
+            qos_profile = mode_qos_config.get_mode_qos_profile()
+            self.publisher = self.create_publisher(ModeMsg, '/mode', qos_profile)
 
-            msg = Mode()
-            msg.mode = 'autonomous'
+            msg = ModeMsg()
+            msg.mode = modes.Mode.AUTONOMOUS
             self.publisher.publish(msg)
-            self.get_logger().info('Initial mode published: autonomous')
+            self.get_logger().info('Initial mode published: ' + str(msg.mode))
         
         except Exception as e:
             self.get_logger().error(f"Error: {e}")

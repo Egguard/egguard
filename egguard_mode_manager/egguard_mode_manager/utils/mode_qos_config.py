@@ -3,7 +3,7 @@ Provides QoS configuration for the '/mode' topic.
 """
 from rclpy.qos import QoSProfile, QoSDurabilityPolicy, HistoryPolicy
 
-def get_common_qos_profile() -> QoSProfile:
+def get_mode_qos_profile() -> QoSProfile:
     """
     Returns a QoSProfile for the '/mode' topic.
 
