@@ -1,25 +1,106 @@
-#POR ORDEN: CUSTOM_INTERFACES, MODE_MANAGER, NAV2_SYSTEM, MY_WORLD
+>>>>>>>>>> #COMPILAR
+
+#POR ORDEN: CUSTOM_INTERFACES, MODE_MANAGER, NAV2_SYSTEM, WORLD, ASYNC_WEB_SERVER_CPP, WEB_VIDEO_SERVER
 colcon build --packages-select egguard_nav2_system
 source ./install/setup.bash
 
-#WORLD (CAMBIAR POR LA RUTA DONDE TENGAS EL PROYECTO)
-export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:/home/ubuntu/Documentos/Proyecto_Robotica/egguard/egguard_my_world/models/model_editor_models 
-ros2 launch egguard_my_world turtlebot3_egguard_my_world.launch.py
+#WORLD (LA PRIMERA VEZ QUE ABRAS EL GAZEBO, CAMBIAR POR LA RUTA DONDE TENGAS EL PROYECTO)
+export GAZEBO_MODEL_DATABASE_URI="" #para no intentar cargar modelos 3d de webs gazebo 
+export GAZEBO_MODEL_PATH=$HOME/egguard/install/egguard_world/share/egguard_world/models/model_editor_models:$HOME/egguard/install/egguard_world/share/egguard_world/models
+
+ros2 launch egguard_world egguard_world.launch.py
 
 #EL QUE SE ENCARGA DE CARGAR MAPA Y SITUAR AL ROBOT AL PRINCIPIOP CON AMCL
 ros2 launch egguard_nav2_system provide_map.launch.py use_sim_time:=True
 
 #EL QUE SE ENCARGA DE CARGAR EL MAPA
-ros2 service call /map_server/load_map nav2_msgs/srv/LoadMap "{map_url: $HOME//home/ubuntu/Documentos/Proyecto_Robotica/egguard/egguard_nav2_system/config/my_map.yaml}"
+ros2 service call /map_server/load_map nav2_msgs/srv/LoadMap "{map_url: $HOME/egguard/egguard_nav2_system/config/my_map.yaml}"
 
 #SITUA EL ROBOT EN EL MAPA
-ros2 run egguard_nav2_system initial_pose_pub
+#YA NO HACE FALTA HACER ESTE COMANDO ros2 run egguard_nav2_system initial_pose_pub
 
-#INICIA LOS NODOS DE NAVEGACION AUTONOMA DE NAV2
-ros2 launch egguard_nav2_system autonomous_controller.launch.py
-
-#ESTE PONE EL MODO INICIAL, MODO AUTONOMO
+#ESTE PONE EL MODO INICIAL
 ros2 launch egguard_mode_manager initial_mode_publisher.launch.py
 
-#ESTE CORRE EL NODO NUESTRO DE NAVEGACION AUTONOMA
-ros2 run egguard_nav2_system autonomous_controller
+PARA AUTONOMO:
+
+    #INICIA LOS NODOS DE NAVEGACION AUTONOMA DE NAV2
+    ros2 launch egguard_nav2_system autonomous_controller.launch.py
+
+    #ESTE CORRE EL NODO NUESTRO DE NAVEGACION AUTONOMA
+    ros2 run egguard_nav2_system autonomous_controller
+
+PARA PROBAR EL ROSWEB MANUAL:
+
+    rosenv
+    sudo apt update
+    sudo apt install ros-galactic-rosbridge-suite
+
+    # Empieza a escuchar por el puerto 9090 para aceptar conexiones
+    ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+
+    # Lanza el nodo manual
+    ros2 launch egguard_nav2_system manual_controller.launch.py
+
+    #Jugar con manejo en terminal
+    ros2 topic pub /manual_nav egguard_custom_interfaces/msg/ManualNav "{velocity: 100, direction: 'left', stop_now: true}"
+    ros2 topic pub --qos-durability transient_local /mode egguard_custom_interfaces/msg/Mode "{mode: 'manual'}"
+    then on egguard-frontend npm run dev and press the buttons
+
+
+>>>>>>>>>> # PARA PROBAR CON ROBOT REAL
+
+#terminal 1
+>>>Meterse al wifi que toca<<< (ver pdf de conexiones)
+ssh ubuntu@192.168.0.133
+ros2 launch turtlebot3_bringup robot.launch.py
+
+
+#terminal 2
+export ROS_DOMAIN_ID=80
+source ./install/setup.bash
+ros2 launch turtlebot3_cartographer cartographer.launch.py use_sim_time:=False
+
+
+#terminal 3
+cd $HOME/turtlebot3_ws/
+ros2 run turtlebot3_teleop teleop_keyboard
+
+#terminal 4
+ros2 run nav2_map_server map_saver_cli -f $HOME/Escritorio
+
+
+
+>>>>>>>>>> # PARA PROBAR EJEMPLO DE CAMARA EN WEB 
+
+#terminal 1:
+cd egguard/
+source ./install/setup.bash
+ros2 launch egguard_world egguard_world.launch.py
+
+#terminal 2:
+cd video_web_test/prueba_camara
+ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+
+#terminal 3: lanzamos el servidor de vídeo
+cd ../../ #deberia volver a /egguard
+ros2 run web_video_server web_video_server
+
+#Prueba opcional navegador
+http://0.0.0.0:8080/stream?topic=/camera/image_raw
+
+#De ser necesario cargar servicios u otros elementos, por ejemplo, para mover el robot desde la web
+
+#terminal 4:
+python3 -m http.server 8000
+
+#Probar página web con código js
+http://localhost:8000 #entrar en /video_web_test/prueba_camara/ para testeo con ws://127.0.0.1:9090/
+
+
+>>>>>>>>>> PARA CERRAR GAZEBO SI SE QUEDA PILLADO
+
+#terminal
+
+ps #saldrá lista de procesos activos, busca uno que se llame gzclient
+kill NUMERO_PROCESO

@@ -8,6 +8,9 @@ setup(
     name=package_name,
     version='0.0.0',
     packages=[package_name],
+    package_data={
+        package_name: ['utils/*.py'],
+    },
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -18,7 +21,8 @@ setup(
         (os.path.join('share', package_name, 'launch'), glob('launch/*.launch.py')),
         (os.path.join('share', package_name, 'config'), glob('config/*.lua')),
         (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
-        (os.path.join('share', package_name, 'config'), glob('config/*.xml'))
+        (os.path.join('share', package_name, 'config'), glob('config/*.xml')),
+        (os.path.join('share', package_name, 'config'), glob('config/*.urdf'))
     ],
     install_requires=['setuptools'],
     zip_safe=True,
