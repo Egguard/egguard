@@ -137,7 +137,6 @@ class ManualController(Node):
             - direction: str, one of "left", "right", "forward".
             - stop_now: bool indicating whether to stop the robot immediately.
         """
-        # Update the last command time
         self.last_manual_command_time = time.time()
         
         linear_x: float = 0.0
@@ -151,9 +150,15 @@ class ManualController(Node):
             if msg.direction == directions.Direction.FORWARD:
                 angular_z = 0.0
             elif msg.direction == directions.Direction.LEFT:
-                angular_z = self.constant_angular_velocity*(linear_x/self.max_linear_velocity) 
+                if msg.velocity == 0:
+                    angular_z = self.constant_angular_velocity  # Use constant value for in-place rotation
+                else:
+                    angular_z = self.constant_angular_velocity * (linear_x/self.max_linear_velocity)
             elif msg.direction == directions.Direction.RIGHT:
-                angular_z = -self.constant_angular_velocity*(linear_x/self.max_linear_velocity)
+                if msg.velocity == 0:
+                    angular_z = -self.constant_angular_velocity  # Use constant value for in-place rotation
+                else:
+                    angular_z = -self.constant_angular_velocity * (linear_x/self.max_linear_velocity)
             else:
                 self.get_logger().warn(f"Unknown direction '{msg.direction}'. Stopping the robot.")
 
