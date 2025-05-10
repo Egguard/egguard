@@ -1,0 +1,171 @@
+# EggGuard Computer Vision - Design Documentation
+
+## 1. Overview
+
+The EggGuard Computer Vision system is a ROS2 package designed for accurate detection of brown eggs on a light background. The system implements multiple computer vision algorithms to detect and count eggs in images captured by a camera.
+
+This document details the system architecture, algorithms used, and implementation details of the egg detection system.
+
+## 2. System Architecture
+
+The system follows a modular design with clear separation of concerns between computer vision logic and ROS integration:
+
+```
+egguard_computer_vision/
+├── egg_detector.py    # Computer vision algorithms
+├── main_node.py       # ROS2 node implementation
+├── launch/
+│   └── egg_detection.launch.py  # Launch configuration
+```
+
+### 2.1 Component Interactions
+
+1. **main_node.py**: Handles all ROS-related operations including:
+   - Parameter management
+   - Image subscription
+   - Results publishing
+   - Timing control (processing at fixed intervals)
+   - Command-line interface for offline image processing
+
+2. **egg_detector.py**: Implements all computer vision algorithms including:
+   - Image preprocessing
+   - Feature extraction
+   - Egg detection using multiple methods
+   - Result aggregation
+
+## 3. Computer Vision Algorithms
+
+The egg detection system uses multiple complementary techniques to achieve robust detection across different lighting conditions and egg orientations.
+
+### 3.1 Distance Transform Method
+
+This method leverages the notion that eggs have a specific elliptical shape, regardless of their color.
+
+**Algorithm Steps:**
+1. **Image Pre-processing**:
+   - Convert to HSV color space
+   - Extract value channel
+   - Apply Otsu's thresholding
+   - Apply morphological closing to remove noise
+
+2. **Distance Transform Application**:
+   - Apply distance transform to create a distance map
+   - Create an elliptical template
+   - Apply template matching to find regions similar to the elliptical template
+
+3. **Peak Detection and Filtering**:
+   - Threshold the template matching results
+   - Find contours in the peaks
+   - Filter contours based on:
+     - Radius (min_radius, max_radius)
+     - Area (min_area, max_area)
+     - Circularity (min_circularity)
+     - Axis ratio (min_ratio, max_ratio)
+     - Color properties (hue, saturation) to identify brown eggs
+
+### 3.2 Color-Based Method
+
+This method focuses on the brown color characteristic of eggs.
+
+**Algorithm Steps:**
+1. **Image Pre-processing**:
+   - Apply noise reduction (fastNlMeansDenoisingColored)
+   - Convert to HSV color space
+
+2. **Color Segmentation**:
+   - Define two color ranges for brown eggs:
+     - Reddish browns (H: 0-20, S: 30+, V: 40+)
+     - Yellowish browns (H: 20-40, S: 30+, V: 40+)
+   - Create a combined mask from both color ranges
+
+3. **Morphological Operations**:
+   - Apply closing operation to fill small holes
+   - Apply opening operation to remove noise
+
+4. **Contour Detection and Filtering**:
+   - Find contours in the processed mask
+   - Filter contours based on area, shape, and ratio
+   - Fit ellipses to the valid contours
+
+### 3.3 Combined Approach
+
+The system combines both methods to achieve high accuracy:
+1. Run both detection methods independently
+2. Merge the results, avoiding duplicated detections
+3. Return a unified list of detected eggs with confidence scores
+
+## 4. Key Parameters
+
+The detection system is highly configurable with the following key parameters:
+
+| Parameter          | Description                                      | Default Value |
+|--------------------|--------------------------------------------------|--------------|
+| `min_area`         | Minimum area of an egg contour                   | 370          |
+| `max_area`         | Maximum area of an egg contour                   | 1100         |
+| `min_radius`       | Minimum radius of enclosing circle               | 10           |
+| `max_radius`       | Maximum radius of enclosing circle               | 30           |
+| `min_circularity`  | Minimum circularity (0-1)                        | 0.5          |
+| `min_ratio`        | Minimum axis ratio                               | 0.5          |
+| `max_ratio`        | Maximum axis ratio                               | 2.0          |
+| `border_size`      | Border size for distance transform               | 40           |
+| `detection_interval`| Time between detections in seconds              | 3.0          |
+
+## 5. ROS2 Implementation
+
+### 5.1 Topics
+
+The EggDetectionNode publishes to the following topics:
+
+| Topic                     | Type                | Description                           |
+|---------------------------|---------------------|---------------------------------------|
+| `egg_detection/results`   | `std_msgs/String`   | JSON-formatted detection results      |
+| `egg_detection/image`     | `sensor_msgs/Image` | Annotated image with detections       |
+| `egg_detection/count`     | `std_msgs/Float32`  | Number of eggs detected               |
+| `egg_detection/processing_time` | `std_msgs/Float32` | Processing time in seconds       |
+
+### 5.2 Subscriptions
+
+| Topic      | Type              | Description                        |
+|------------|-------------------|------------------------------------|
+| `image_raw`| `sensor_msgs/Image`| Raw camera image input            |
+
+### 5.3 Parameters
+
+All detection parameters are configurable through ROS parameters and can be set via the launch file or parameter service.
+
+## 6. Performance Considerations
+
+### 6.1 Processing Control
+
+The system implements a time-based processing control to avoid excessive CPU usage:
+- Images are processed only if sufficient time has passed since the last detection
+- A mutex ensures that only one image is processed at a time
+
+### 6.2 Debug Mode
+
+The system includes a comprehensive debug mode that:
+- Saves intermediate images for each processing step
+- Shows visual feedback for each algorithm stage
+- Provides detailed logging about the detection process
+
+## 7. CLI Interface
+
+For offline testing and development, the system provides a command-line interface that can:
+- Process individual images
+- Process directories of images
+- Display results visually
+- Save annotated output images
+
+## 8. Future Improvements
+
+Potential improvements for future versions:
+
+1. **Machine Learning Integration**: Adding a deep learning-based detector to complement traditional computer vision methods
+2. **Adaptive Parameters**: Auto-tuning parameters based on image conditions
+3. **Tracking**: Adding object tracking to improve performance and stability
+4. **Quality Assessment**: Adding quality metrics for each detected egg
+5. **Classification**: Adding classification of egg types or conditions
+
+## 9. Conclusion
+
+The EggGuard Computer Vision system provides a robust and modular approach to egg detection using conventional computer vision techniques. By combining shape-based and color-based detection methods, the system can reliably detect eggs across various conditions.
