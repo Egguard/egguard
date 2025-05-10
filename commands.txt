@@ -53,6 +53,7 @@ PARA PROBAR EL ROSWEB MANUAL:
 #terminal 1
 >>>Meterse al wifi que toca<<< (ver pdf de conexiones)
 ssh ubuntu@192.168.0.133
+turtlebot #contraseña
 ros2 launch turtlebot3_bringup robot.launch.py
 
 
