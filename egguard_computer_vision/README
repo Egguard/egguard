@@ -198,7 +198,7 @@ This visualization is only shown when debug mode is enabled.
 
 ### Computational Optimization
 - **Image Resizing**: Input images are resized to reduce computational load
-- **Processing Interval**: Images are processed at specified intervals (default: 3 seconds) rather than every frame
+- **Processing Interval**: Images are processed at specified intervals (default: 3 seconds) rather than every frame (line 119 main.py)
 - **Early Filtering**: Small contours are filtered out early in the detection pipeline
 
 ### Parameter Tuning

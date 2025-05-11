@@ -116,7 +116,7 @@ def main(args=None):
     rclpy.init(args=args)
     
     # Create the egg detection node with 3-second processing interval
-    egg_detection_node = EggDetectionNode(processing_interval=3.0)
+    egg_detection_node = EggDetectionNode(processing_interval=0.05)
     
     try:
         # Spin the node
