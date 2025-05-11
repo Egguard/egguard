@@ -230,46 +230,52 @@ def non_max_suppression(centers, radii, overlap_threshold=0.5):
         return [], []
     
     # Convert lists to numpy arrays
-    centers = np.array(centers)
-    radii = np.array(radii)
+    centers = np.array(centers, dtype=np.float64)  # Use float64 to prevent overflow
+    radii = np.array(radii, dtype=np.float64)      # Use float64 to prevent overflow
     
     # Sort by radius (larger radius first)
     idx = np.argsort(radii)[::-1]
     centers = centers[idx]
     radii = radii[idx]
     
-    keep = []
+    # Initialize list to keep track of which detections to keep
+    keep = [0]  # Start by keeping the largest circle
     
-    while len(centers) > 0:
-        # Keep the largest circle
-        keep.append(len(centers) - 1)
+    # For each detection
+    for i in range(1, len(centers)):
+        # Check if this detection overlaps significantly with any kept detection
+        should_keep = True
         
-        if len(centers) == 1:
-            break
+        for j in keep:
+            # Calculate distance between centers
+            x1, y1 = centers[i].astype(np.float64)  # Cast to float64 to prevent overflow
+            x2, y2 = centers[j].astype(np.float64)  # Cast to float64 to prevent overflow
+            distance = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+            
+            # Calculate overlap
+            r1 = float(radii[i])
+            r2 = float(radii[j])
+            
+            # Prevent division by zero
+            min_radius = min(r1, r2)
+            if min_radius <= 0:
+                continue
+                
+            # Calculate overlap ratio more safely
+            overlap = max(0.0, (r1 + r2 - distance)) / min_radius
+            
+            # If overlap is too high, don't keep this detection
+            if overlap > overlap_threshold:
+                should_keep = False
+                break
         
-        # Calculate distances between first center and all others
-        x1, y1 = centers[0]
-        rest_centers = centers[1:]
-        
-        distances = np.sqrt((rest_centers[:, 0] - x1) ** 2 + (rest_centers[:, 1] - y1) ** 2)
-        
-        # If the distance is greater than the sum of radii multiplied by a threshold,
-        # the circles don't overlap significantly
-        r1 = radii[0]
-        rest_radii = radii[1:]
-        
-        # Calculate overlap based on distance and radii
-        overlap = (r1 + rest_radii - distances) / np.minimum(r1, rest_radii)
-        
-        # Keep circles with low overlap
-        indices_to_keep = np.where(overlap < overlap_threshold)[0] + 1
-        
-        centers = centers[indices_to_keep]
-        radii = radii[indices_to_keep]
+        # If no significant overlap with any kept detection, keep this one too
+        if should_keep:
+            keep.append(i)
     
     # Return the kept detections
-    final_centers = [centers[i] for i in keep]
-    final_radii = [radii[i] for i in keep]
+    final_centers = [tuple(map(int, centers[i])) for i in keep]  # Convert back to int tuples
+    final_radii = [int(radii[i]) for i in keep]  # Convert back to int
     
     return final_centers, final_radii
 

@@ -43,6 +43,8 @@ qtcreator-*
 /planning/docs
 /planning/src
 
+egguard_computer_vision/egguard_computer_vision/simulation_data/
+
 *~
 
 # Emacs

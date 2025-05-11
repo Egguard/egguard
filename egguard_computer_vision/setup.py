@@ -21,7 +21,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'egguard_node=egguard_computer_vision.main:main'
+            'egguard_node=egguard_computer_vision.main:main',
+            'egg_simulator = egguard_computer_vision.simulation:main'
         ],
     },
 )
