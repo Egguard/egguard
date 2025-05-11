@@ -48,6 +48,12 @@ PARA PROBAR EL ROSWEB MANUAL:
     then on egguard-frontend npm run dev and press the buttons
 
 
+PARA USAR RECONOCIMIENTO OPENCV
+
+    #En nueva terminal, y con el paquete compilado (colcon build --packages-select egguard_computer_vision y source install/setup.bash):
+    ros2 launch egguard_computer_vision egguard_vision.launch.py
+
+
 >>>>>>>>>> # PARA PROBAR CON ROBOT REAL
 
 #terminal 1
