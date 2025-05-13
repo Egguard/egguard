@@ -10,7 +10,7 @@ export GAZEBO_MODEL_PATH=$HOME/egguard/install/egguard_world/share/egguard_world
 
 ros2 launch egguard_world egguard_world.launch.py
 
-#EL QUE SE ENCARGA DE CARGAR MAPA Y SITUAR AL ROBOT AL PRINCIPIOP CON AMCL
+#EL QUE SE ENCARGA DE CARGAR MAPA Y SITUAR AL ROBOT AL PRINCIPIO CON AMCL
 ros2 launch egguard_nav2_system provide_map.launch.py use_sim_time:=True
 
 #EL QUE SE ENCARGA DE CARGAR EL MAPA
@@ -56,54 +56,58 @@ PARA USAR RECONOCIMIENTO OPENCV
 
 >>>>>>>>>> # PARA PROBAR CON ROBOT REAL
 
-#terminal 1
->>>Meterse al wifi que toca<<< (ver pdf de conexiones)
-ssh ubuntu@192.168.0.133
-turtlebot #contraseña
-ros2 launch turtlebot3_bringup robot.launch.py
+>> MAPEAR Y GUARDAR MAPA 
+
+    #terminal 1 CONEXION ROBOT INICIALIZACION
+    >>>Meterse al wifi que toca<<< (ver pdf de conexiones)
+    ssh ubuntu@192.168.0.133
+    turtlebot #contraseña
+    ros2 launch turtlebot3_bringup robot.launch.py
 
 
-#terminal 2
-export ROS_DOMAIN_ID=80
-source ./install/setup.bash
-ros2 launch turtlebot3_cartographer cartographer.launch.py use_sim_time:=False
+    #terminal 2 RVIZ
+    export ROS_DOMAIN_ID=80
+    source ./install/setup.bash
+    ros2 launch turtlebot3_cartographer cartographer.launch.py use_sim_time:=False
 
 
-#terminal 3
-cd $HOME/turtlebot3_ws/
-ros2 run turtlebot3_teleop teleop_keyboard
+    #terminal 3 MOVIMIENTO MANUAL TECLADO ROBOT REAL
+    export ROS_DOMAIN_ID=80
+    source ./install/setup.bash
+    ros2 run turtlebot3_teleop teleop_keyboard
 
-#terminal 4
-ros2 run nav2_map_server map_saver_cli -f $HOME/Escritorio
+    #terminal 4
+    ros2 run nav2_map_server map_saver_cli -f $HOME/Escritorio
 
+>> VER CAMARA REAL Y DETECCION OPENCV
 
+    #terminal 1 CONEXION ROBOT INICIALIZACION
+    ssh ubuntu@192.168.0.133
+    #contraseña 
+    turtlebot
+    ros2 launch turtlebot3_bringup robot.launch.py
 
->>>>>>>>>> # PARA PROBAR EJEMPLO DE CAMARA EN WEB 
+    #terminal 2 CAMARA ROBOT REAL
+    ssh ubuntu@192.168.0.133
+    #contraseña 
+    turtlebot
+    export ROS_DOMAIN_ID=80
+    ros2 run image_tools cam2image --ros-args -p burger_mode:=false -p frequency:=1.0 -p reliability:=best_effort
 
-#terminal 1:
-cd egguard/
-source ./install/setup.bash
-ros2 launch egguard_world egguard_world.launch.py
+    #terminal 3 VER CAMARA REAL
+    cd egguard
+    export ROS_DOMAIN_ID=80
+    source ./install/setup.bash
+    ros2 run image_tools showimage --ros-args -p show_image:=true -p reliability:=best_effort
 
-#terminal 2:
-cd video_web_test/prueba_camara
-ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+    #terminal 4 DETECCION OPENCV
+    export ROS_DOMAIN_ID=80
+    source ./install/setup.bash
+    ros2 launch egguard_computer_vision egguard_vision.launch.py
 
-#terminal 3: lanzamos el servidor de vídeo
-cd ../../ #deberia volver a /egguard
-ros2 run web_video_server web_video_server
-
-#Prueba opcional navegador
-http://0.0.0.0:8080/stream?topic=/camera/image_raw
-
-#De ser necesario cargar servicios u otros elementos, por ejemplo, para mover el robot desde la web
-
-#terminal 4:
-python3 -m http.server 8000
-
-#Probar página web con código js
-http://localhost:8000 #entrar en /video_web_test/prueba_camara/ para testeo con ws://127.0.0.1:9090/
-
+    #terminal 5 MOVIMIENTO MANUAL TECLADO ROBOT REAL
+    source ./install/setup.bash
+    ros2 run turtlebot3_teleop teleop_keyboard
 
 >>>>>>>>>> PARA CERRAR GAZEBO SI SE QUEDA PILLADO
 
@@ -111,3 +115,5 @@ http://localhost:8000 #entrar en /video_web_test/prueba_camara/ para testeo con 
 
 ps #saldrá lista de procesos activos, busca uno que se llame gzclient
 kill NUMERO_PROCESO
+
+
