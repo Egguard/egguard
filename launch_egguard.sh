@@ -100,7 +100,7 @@ sleep 2
 run_in_new_terminal "Web Video Server" "ros2 run web_video_server web_video_server"
 sleep 2
 
-run_in_new_terminal "OpenCV Egg Detection" "ros2 launch egguard_computer_vision egg_detection.launch.py"
+run_in_new_terminal "OpenCV Egg Detection" "ros2 launch egguard_computer_vision egguard_vision.launch.py"
 sleep 2
 
 # Open browser with camera stream
