@@ -5,8 +5,8 @@ import numpy as np
 import json
 import argparse
 import os
-from egg_detector import preprocess_image, detect_eggs, draw_detections
-from egg_analysis import analyze_eggs
+from egg_detector import EggDetector
+from egg_analysis import EggAnalyzer
 
 def simulate_broken_egg(image, center, radius, severity=0.7):
     """
@@ -59,16 +59,14 @@ def simulate_broken_egg(image, center, radius, severity=0.7):
     return result
 
 def add_text_overlay(image, egg_info_list):
-    """Add text overlay with JSON data to the image"""
+    """Add text overlay with egg data to the image"""
     # Create a copy of the image
     result = image.copy()
     
-    # Add JSON data as text
-    json_text = json.dumps(egg_info_list, indent=2)
-    lines = json_text.split('\n')
-    
+    # Add egg data as text
     y = 30
-    for line in lines:
+    for i, egg_info in enumerate(egg_info_list):
+        line = f"Egg #{i+1}: {json.dumps(egg_info)}"
         cv2.putText(
             result, 
             line, 
@@ -90,6 +88,14 @@ def main():
     parser.add_argument('--json_output', type=str, default='simulation_data/egg_data.json', help='Path to output JSON file')
     args = parser.parse_args()
     
+    # Create output directory if it doesn't exist
+    os.makedirs(os.path.dirname(args.output), exist_ok=True)
+    os.makedirs(os.path.dirname(args.json_output), exist_ok=True)
+    
+    # Initialize our detector and analyzer classes
+    egg_detector = EggDetector()
+    egg_analyzer = EggAnalyzer()
+    
     # Use default egg image if not provided
     image_path = args.image
     if not image_path or not os.path.isfile(image_path):
@@ -108,7 +114,6 @@ def main():
         
         for (x, y), r, is_broken in egg_positions:
             # Determine egg type: white or brown
-            # /** Select egg type (white or brown) **/
             egg_type = np.random.choice(['white', 'brown'])
 
             if egg_type == 'white':
@@ -119,7 +124,7 @@ def main():
             # Random angle for oval rotation
             angle = np.random.randint(0, 180)
 
-            # /** Draw a slightly larger ellipse as border (gray) **/
+            # Draw a slightly larger ellipse as border (gray)
             border_color = (100, 100, 100)
             cv2.ellipse(
                 image,
@@ -131,7 +136,7 @@ def main():
                 -1
             )
 
-            # /** Draw the actual egg on top **/
+            # Draw the actual egg on top
             cv2.ellipse(
                 image,
                 (x, y),
@@ -141,7 +146,6 @@ def main():
                 egg_color,
                 -1
             )
-
 
             # Add some texture
             texture = np.random.randint(0, 10, size=image.shape[:2], dtype=np.uint8)
@@ -169,11 +173,11 @@ def main():
             print(f"Failed to load image: {image_path}")
             return
     
-    # Preprocess the image
-    processed_img = preprocess_image(image)
+    # Preprocess the image using egg detector
+    processed_img = egg_detector.preprocess_image(image)
     
-    # Detect eggs
-    centers, radii = detect_eggs(processed_img)
+    # Detect eggs using detector class
+    centers, radii = egg_detector.detect_eggs(processed_img)
     
     # Default camera parameters for simulation
     camera_params = {
@@ -186,14 +190,15 @@ def main():
     }
     
     # Analyze eggs (detect if broken and get coordinates)
+    egg_info_list = []
+    
     if not image_path or not os.path.isfile(image_path):
         # Simulation mode - build data without analyzing real position
-        data_entries = []
         for i, ((center_x, center_y), radius) in enumerate(zip(centers, radii)):
             egg_info = {
-                "broken": False,
                 "coordX": 0.0,
-                "coordY": 0.0
+                "coordY": 0.0,
+                "broken": False
             }
 
             # Check if the egg is broken based on simulated positions
@@ -203,40 +208,42 @@ def main():
                     egg_info["broken"] = is_broken
                     break
 
-            data_entries.append(egg_info)
-
-        egg_info_list = {
-            "eggs": len(data_entries),
-            "data": data_entries
-        }
+            egg_info_list.append(egg_info)
     else:
-        # Real analysis with distance
-        data_entries = analyze_eggs(image, centers, radii, camera_params)
-        egg_info_list = {
-            "eggs": len(data_entries),
-            "data": data_entries
-        }
+        # Real analysis with distance using analyzer class
+        egg_results = egg_analyzer.analyze_eggs(image, centers, radii, camera_params)
+        for egg_data in egg_results:
+            egg_info = {
+                "coordX": egg_data['coordX'],
+                "coordY": egg_data['coordY'],
+                "broken": egg_data['broken']
+            }
+            egg_info_list.append(egg_info)
     
     # Print egg information
     print(f"Detected {len(centers)} eggs:")
-    for i, egg_info in enumerate(egg_info_list["data"]):
+    for i, egg_info in enumerate(egg_info_list):
         status = "BROKEN" if egg_info['broken'] else "OK"
         print(f"Egg #{i+1}: {status}, Position: ({egg_info['coordX']:.3f}, {egg_info['coordY']:.3f})")
     
-    # Print JSON format for backend
-    print("\nJSON Format for backend:")
-    print(json.dumps(egg_info_list, indent=2))
+    # Save individual JSON files for each egg (for backend compatibility)
+    for i, egg_info in enumerate(egg_info_list):
+        # Create a filename for each egg
+        egg_filename = os.path.splitext(args.json_output)[0] + f"_egg{i+1}.json"
+        with open(egg_filename, 'w') as f:
+            json.dump(egg_info, f)
+        print(f"Egg #{i+1} data saved to {egg_filename}")
     
-    # Save JSON to file
+    # Also save a consolidated file for reference
     with open(args.json_output, 'w') as f:
         json.dump(egg_info_list, f, indent=2)
-    print(f"JSON data saved to {args.json_output}")
+    print(f"All egg data saved to {args.json_output}")
     
-    # Draw detections on the image
-    result_img = draw_detections(image.copy(), centers, radii)
+    # Draw detections on the image using detector class
+    result_img = egg_detector.draw_detections(image.copy(), centers, radii, egg_info_list)
     
     # Add status indicators
-    for i, ((x, y), r, egg_info) in enumerate(zip(centers, radii, egg_info_list["data"])):
+    for i, ((x, y), r, egg_info) in enumerate(zip(centers, radii, egg_info_list)):
         status = "BROKEN" if egg_info['broken'] else "OK"
         color = (0, 0, 255) if egg_info['broken'] else (0, 255, 0)
         
@@ -250,15 +257,15 @@ def main():
             2
         )
     
-    # Add JSON overlay
-    result_with_json = add_text_overlay(result_img, egg_info_list["data"])
+    # Add egg data overlay
+    result_with_data = add_text_overlay(result_img, egg_info_list)
     
     # Save the output image
-    cv2.imwrite(args.output, result_with_json)
+    cv2.imwrite(args.output, result_with_data)
     print(f"Result image saved to {args.output}")
     
     # Display the image if not in headless mode
-    cv2.imshow("Egg Detection Result", result_with_json)
+    cv2.imshow("Egg Detection Result", result_with_data)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 

@@ -10,23 +10,20 @@ import os
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 from std_msgs.msg import Int32, String
+from nav_msgs.msg import Odometry
 from rclpy.node import Node
 from rclpy.qos import ReliabilityPolicy, QoSProfile
 
-# Import our egg detection and analysis modules
-from egguard_computer_vision.egg_detector import (
-    preprocess_image,
-    detect_eggs,
-    draw_detections
-)
-from egguard_computer_vision.egg_analysis import analyze_eggs
+# Import our egg detection and analysis classes
+from egguard_computer_vision.egg_detector import EggDetector
+from egguard_computer_vision.egg_analysis import EggAnalyzer
 
 class EggDetectionNode(Node):
     """
     ROS2 Node for egg detection using computer vision.
     Subscribes to camera images and processes them to detect chicken eggs.
     """
-    def __init__(self, processing_interval=3.0, debug_mode=True, backend_url=None):
+    def __init__(self, processing_interval=1.0, debug_mode=True, backend_url=None):
         """
         Initialize the egg detection node.
         
@@ -40,11 +37,23 @@ class EggDetectionNode(Node):
         # Initialize CV bridge for ROS-OpenCV image conversion
         self.bridge = CvBridge()
         
+        # Initialize egg detector and analyzer
+        self.egg_detector = EggDetector()
+        self.egg_analyzer = EggAnalyzer()
+        
         # Create subscription to camera topic
         self.image_sub = self.create_subscription(
             Image,
-            '/camera/image_raw',
+            '/camera/image_raw', #change to /image when real robot camera is used
             self.camera_callback,
+            QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT)
+        )
+        
+        # Create subscription to odometry topic to get robot pose
+        self.odom_sub = self.create_subscription(
+            Odometry,
+            '/odom',
+            self.odom_callback,
             QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT)
         )
         
@@ -76,6 +85,9 @@ class EggDetectionNode(Node):
         self.debug_mode = debug_mode
         self.backend_url = backend_url or os.environ.get('EGGUARD_BACKEND_URL', 'http://localhost:8080/eggs')
         
+        # Flag to check if we've received odometry data
+        self.odom_received = False
+        
         # Camera parameters (will be updated from camera_info if available)
         self.camera_params = {
             'height_mm': 150,           # Height of camera from ground
@@ -89,6 +101,25 @@ class EggDetectionNode(Node):
         self.get_logger().info('Egg detection node initialized')
         self.get_logger().info(f'Processing interval set to {processing_interval} seconds')
         self.get_logger().info(f'Backend URL: {self.backend_url}')
+    
+    def odom_callback(self, msg):
+        """
+        Callback function for odometry subscription.
+        Updates robot pose in the egg analyzer.
+        
+        Args:
+            msg (Odometry): Odometry message containing robot pose
+        """
+        try:
+            # Update the robot pose in the egg analyzer
+            self.egg_analyzer.update_robot_pose(msg)
+            
+            # Mark that we've received odometry data
+            self.odom_received = True
+            
+            self.get_logger().debug(f'Updated robot pose: x={msg.pose.pose.position.x:.2f}, y={msg.pose.pose.position.y:.2f}')
+        except Exception as e:
+            self.get_logger().error(f'Error updating robot pose: {e}')
     
     def camera_info_callback(self, msg):
         """
@@ -135,17 +166,24 @@ class EggDetectionNode(Node):
             img_msg (Image): The ROS image message
         """
         try:
+            # Check if we have odometry data
+            if not self.odom_received:
+                self.get_logger().warning('No odometry data received yet. World coordinates will be inaccurate.')
+            
             # Convert ROS image to OpenCV format
             cv_image = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding="bgr8")
             
-            # Preprocess the image (resize, filter, etc.)
-            processed_img = preprocess_image(cv_image)
+            # Preprocess the image and detect eggs using the detector class
+            preprocessed_img = self.egg_detector.preprocess_image(cv_image)
+            egg_centers, egg_radii = self.egg_detector.detect_eggs(preprocessed_img)
             
-            # Detect eggs in the image
-            egg_centers, egg_radii = detect_eggs(processed_img)
+            # Analyze eggs (detect if broken and calculate coordinates) using the analyzer class
+            egg_info_list = self.egg_analyzer.analyze_eggs(cv_image, egg_centers, egg_radii, self.camera_params)
             
-            # Analyze eggs (detect if broken and calculate coordinates)
-            egg_info_list = analyze_eggs(cv_image, egg_centers, egg_radii, self.camera_params)
+            # Ensure egg_info_list matches the number of detected eggs
+            # This line is crucial - it ensures our egg info list is complete
+            if len(egg_info_list) != len(egg_centers):
+                self.get_logger().warning(f"Mismatch between detected eggs ({len(egg_centers)}) and analyzed eggs ({len(egg_info_list)})")
             
             # Publish egg count
             count_msg = Int32()
@@ -161,7 +199,6 @@ class EggDetectionNode(Node):
             self.send_to_backend(egg_info_list)
             
             self.get_logger().info(f'Detected {len(egg_centers)} eggs')
-            self.get_logger().debug(f'Egg info: {json.dumps(egg_info_list)}')
             
             # If debug mode is enabled, show visualization
             if self.debug_mode:
@@ -179,7 +216,7 @@ class EggDetectionNode(Node):
     
     def draw_debug_image(self, image, centers, radii, egg_info_list):
         """
-        Draw debug information on the image.
+        Draw debug information on the image with format matching simulation.py.
         
         Args:
             image (numpy.ndarray): Image to draw on
@@ -190,24 +227,22 @@ class EggDetectionNode(Node):
         Returns:
             numpy.ndarray: Image with debug information
         """
-        # Draw basic detections
-        result = draw_detections(image, centers, radii)
+        # Use the detector's draw_detections method to visualize the eggs
+        result = self.egg_detector.draw_detections(image, centers, radii, egg_info_list)
         
-        # Add additional information about broken status and coordinates
-        for i, ((x, y), r, info) in enumerate(zip(centers, radii, egg_info_list)):
-            # Add label with broken status and coordinates
-            status = "BROKEN" if info['broken'] else "OK"
-            color = (0, 0, 255) if info['broken'] else (0, 255, 0)
-            
-            cv2.putText(
-                result,
-                f"{status} ({info['coordX']:.2f}, {info['coordY']:.2f})",
-                (x - 20, y + r + 20),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.5,
-                color,
-                2
-            )
+        # Add robot position and orientation
+        robot_x = self.egg_analyzer.robot_pose['x']
+        robot_y = self.egg_analyzer.robot_pose['y']
+        robot_yaw = self.egg_analyzer.robot_pose['yaw']
+        cv2.putText(
+            result,
+            f"Robot: ({robot_x:.2f}, {robot_y:.2f}, {robot_yaw:.2f} rad)",
+            (10, 25),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.7,
+            (0, 255, 255),
+            2
+        )
         
         return result
     
@@ -243,11 +278,10 @@ def main(args=None):
     rclpy.init(args=args)
     
     # Get backend URL from environment variable or use default
-    backend_url = os.environ.get('EGGUARD_BACKEND_URL', 'http://localhost:8080/eggs')
+    backend_url = os.environ.get('EGGUARD_BACKEND_URL', 'http://localhost:8080/api/v1/robots/1/eggs')
     
     # Create the egg detection node with specified parameters
     egg_detection_node = EggDetectionNode(
-        processing_interval=0.2,  # Process every 200ms for demonstration
         debug_mode=True,
         backend_url=backend_url
     )
