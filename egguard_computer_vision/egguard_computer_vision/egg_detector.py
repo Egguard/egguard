@@ -4,7 +4,7 @@ import numpy as np
 class EggDetector:
     """
     Class for detecting eggs in images using computer vision techniques.
-    Combines multiple detection methods for robust egg detection.
+    Combines multiple detection methods for robust egg detection of both white and brown eggs.
     """
     
     def __init__(self, target_width=640):
@@ -37,14 +37,18 @@ class EggDetector:
         # Convert to grayscale
         gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
         
-        # Apply Gaussian blur to reduce noise
-        blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+        # Apply Gaussian blur to reduce noise - increased kernel size for better filtering
+        blurred = cv2.GaussianBlur(gray, (7, 7), 0)
         
-        return blurred
+        # Apply CLAHE (Contrast Limited Adaptive Histogram Equalization) for better contrast
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        enhanced = clahe.apply(blurred)
+        
+        return enhanced
 
     def detect_eggs_hough(self, preprocessed_img):
         """
-        Detect eggs using Hough Circle Transform.
+        Detect eggs using Hough Circle Transform with optimized parameters for both white and brown eggs.
         
         Args:
             preprocessed_img (numpy.ndarray): Preprocessed grayscale image
@@ -54,12 +58,12 @@ class EggDetector:
                 and radii is a list of corresponding radii
         """
         # Define parameter ranges for Hough Circle detection
-        # For brown eggs on white/gray background
-        min_dist = 20  # Minimum distance between detected centers
-        param1 = 50    # Higher threshold for Canny edge detector
-        param2 = 30    # Accumulator threshold (lower = more false circles)
-        min_radius = 10
-        max_radius = 100
+        # Optimized for detecting both white and brown eggs
+        min_dist = 30  # Increased minimum distance to avoid overlapping detections
+        param1 = 40    # Lower threshold for Canny edge detector to detect more subtle edges
+        param2 = 25    # Lower accumulator threshold to catch more circles
+        min_radius = 15
+        max_radius = 120  # Increased max radius for eggs that appear larger in the frame
         
         # Apply Hough Circle Transform
         circles = cv2.HoughCircles(
@@ -88,7 +92,7 @@ class EggDetector:
 
     def detect_eggs_contour(self, preprocessed_img):
         """
-        Detect eggs using contour detection.
+        Detect eggs using improved contour detection for both white and brown eggs.
         
         Args:
             preprocessed_img (numpy.ndarray): Preprocessed grayscale image
@@ -97,22 +101,29 @@ class EggDetector:
             tuple: (centers, radii) where centers is a list of (x, y) coordinates
                 and radii is a list of corresponding radii
         """
-        # Apply adaptive thresholding to separate eggs from background
-        thresh = cv2.adaptiveThreshold(
+        # Use Otsu's method to find optimal threshold
+        _, thresh1 = cv2.threshold(preprocessed_img, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        
+        # Also apply adaptive thresholding
+        thresh2 = cv2.adaptiveThreshold(
             preprocessed_img,
             255,
             cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
             cv2.THRESH_BINARY_INV,
-            11,
-            2
+            15,  # Increased block size for better adaptation to lighting variations
+            3    # Slightly increased C parameter
         )
+        
+        # Combine both thresholds
+        thresh = cv2.bitwise_or(thresh1, thresh2)
         
         # Apply morphological operations to clean up the binary image
         kernel = np.ones((5, 5), np.uint8)
-        opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
+        opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=1)
+        closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel, iterations=2)
         
         # Find contours
-        contours, _ = cv2.findContours(opening, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(closing, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
         centers = []
         radii = []
@@ -122,8 +133,8 @@ class EggDetector:
             # Calculate area
             area = cv2.contourArea(contour)
             
-            # Filter small contours
-            if area < 100:
+            # Filter small contours - increased minimum area
+            if area < 200:
                 continue
             
             # Get enclosing circle
@@ -134,7 +145,8 @@ class EggDetector:
             circularity = 4 * np.pi * area / (perimeter * perimeter) if perimeter > 0 else 0
             
             # Eggs are approximately circular but not perfectly so
-            if 0.5 < circularity < 0.9:
+            # Widened circularity range to catch both perfectly circular and slightly oval eggs
+            if 0.4 < circularity < 1.0:
                 centers.append((int(x), int(y)))
                 radii.append(int(radius))
         
@@ -142,7 +154,7 @@ class EggDetector:
 
     def detect_eggs_color(self, image, preprocessed_img):
         """
-        Detect eggs using color filtering techniques.
+        Detect eggs using color filtering techniques optimized for both white and brown eggs.
         
         Args:
             image (numpy.ndarray): Original image in BGR format
@@ -153,20 +165,29 @@ class EggDetector:
                 and radii is a list of corresponding radii
         """
         # Convert to HSV color space
-        hsv = cv2.cvtColor(cv2.resize(image, (preprocessed_img.shape[1], preprocessed_img.shape[0])), cv2.COLOR_BGR2HSV)
+        resized_img = cv2.resize(image, (preprocessed_img.shape[1], preprocessed_img.shape[0]))
+        hsv = cv2.cvtColor(resized_img, cv2.COLOR_BGR2HSV)
         
         # Define range for brown egg color in HSV
-        # These values may need adjustment based on lighting conditions
-        lower_brown = np.array([5, 50, 50])
-        upper_brown = np.array([30, 255, 255])
+        lower_brown = np.array([0, 20, 100])   # Lower brown threshold 
+        upper_brown = np.array([30, 200, 255]) # Upper brown threshold
         
-        # Create mask for brown color
-        mask = cv2.inRange(hsv, lower_brown, upper_brown)
+        # Define range for white egg color in HSV
+        # White eggs are low saturation, high value
+        lower_white = np.array([0, 0, 150])
+        upper_white = np.array([180, 60, 255])
+        
+        # Create masks for both colors
+        brown_mask = cv2.inRange(hsv, lower_brown, upper_brown)
+        white_mask = cv2.inRange(hsv, lower_white, upper_white)
+        
+        # Combine masks to detect both egg types
+        combined_mask = cv2.bitwise_or(brown_mask, white_mask)
         
         # Apply morphological operations to clean up the mask
-        kernel = np.ones((5, 5), np.uint8)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+        kernel = np.ones((7, 7), np.uint8)  # Increased kernel size
+        mask = cv2.morphologyEx(combined_mask, cv2.MORPH_OPEN, kernel, iterations=1)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=2)
         
         # Find contours in the mask
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -179,16 +200,77 @@ class EggDetector:
             # Calculate area
             area = cv2.contourArea(contour)
             
-            # Filter small contours
-            if area < 100:
+            # Filter small contours - increased minimum area
+            if area < 150:
                 continue
             
             # Get enclosing circle
             (x, y), radius = cv2.minEnclosingCircle(contour)
             
+            # Exclude very large contours that are likely background
+            if radius > 100:
+                continue
+                
             centers.append((int(x), int(y)))
             radii.append(int(radius))
         
+        return centers, radii
+        
+    def detect_eggs_ellipse(self, preprocessed_img):
+        """
+        Detect eggs using ellipse fitting to better handle oval-shaped eggs.
+        
+        Args:
+            preprocessed_img (numpy.ndarray): Preprocessed grayscale image
+            
+        Returns:
+            tuple: (centers, radii) where centers is a list of (x, y) coordinates
+                  and radii is a list of corresponding "equivalent radii"
+        """
+        # Use Canny edge detection to find edges
+        edges = cv2.Canny(preprocessed_img, 50, 150)
+        
+        # Dilate edges to ensure closure
+        kernel = np.ones((3, 3), np.uint8)
+        dilated_edges = cv2.dilate(edges, kernel, iterations=1)
+        
+        # Find contours in the edge image
+        contours, _ = cv2.findContours(dilated_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        centers = []
+        radii = []
+        
+        # Process contours
+        for contour in contours:
+            # Need at least 5 points to fit an ellipse
+            if len(contour) < 5:
+                continue
+                
+            # Calculate area
+            area = cv2.contourArea(contour)
+            
+            # Filter small contours
+            if area < 200:
+                continue
+                
+            try:
+                # Fit ellipse to the contour
+                ellipse = cv2.fitEllipse(contour)
+                (center, axes, angle) = ellipse
+                
+                # Compute "equivalent radius" (average of semi-major and semi-minor axes)
+                equivalent_radius = int((axes[0] + axes[1]) / 4)
+                
+                # Filter out ellipses that are too elongated (not egg-like)
+                if min(axes) / max(axes) < 0.3:
+                    continue
+                    
+                centers.append((int(center[0]), int(center[1])))
+                radii.append(equivalent_radius)
+            except:
+                # Sometimes ellipse fitting fails
+                continue
+                
         return centers, radii
 
     def detect_eggs(self, image):
@@ -216,17 +298,18 @@ class EggDetector:
         centers_hough, radii_hough = self.detect_eggs_hough(preprocessed)
         centers_contour, radii_contour = self.detect_eggs_contour(preprocessed)
         centers_color, radii_color = self.detect_eggs_color(original, preprocessed)
+        centers_ellipse, radii_ellipse = self.detect_eggs_ellipse(preprocessed)
         
         # Combine results from different methods
-        all_centers = centers_hough + centers_contour + centers_color
-        all_radii = radii_hough + radii_contour + radii_color
+        all_centers = centers_hough + centers_contour + centers_color + centers_ellipse
+        all_radii = radii_hough + radii_contour + radii_color + radii_ellipse
         
         # Non-maximum suppression to remove overlapping detections
         final_centers, final_radii = self._non_max_suppression(all_centers, all_radii)
         
         return final_centers, final_radii
 
-    def _non_max_suppression(self, centers, radii, overlap_threshold=0.5):
+    def _non_max_suppression(self, centers, radii, overlap_threshold=0.6):
         """
         Apply non-maximum suppression to remove overlapping detections.
         
