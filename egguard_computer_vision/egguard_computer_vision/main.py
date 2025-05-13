@@ -190,7 +190,13 @@ class EggDetectionNode(Node):
             count_msg.data = len(egg_centers)
             self.egg_count_pub.publish(count_msg)
             
-            # Publish detailed egg data
+            # Add a prominent log message with world coordinates for quick verification
+            for i, egg_info in enumerate(egg_info_list):
+                self.get_logger().info(f"Egg #{i+1}: {'BROKEN' if egg_info['broken'] else 'OK'}, " +
+                                      f"Robot-Relative Position: ({egg_info['coordX']:.3f}, {egg_info['coordY']:.3f}), " +
+                                      f"World Position: ({egg_info['worldX']:.3f}, {egg_info['worldY']:.3f})")
+            
+            # Publish detailed egg data - ensure it includes world coordinates
             egg_data_msg = String()
             egg_data_msg.data = json.dumps(egg_info_list)
             self.egg_data_pub.publish(egg_data_msg)
@@ -217,6 +223,7 @@ class EggDetectionNode(Node):
     def draw_debug_image(self, image, centers, radii, egg_info_list):
         """
         Draw debug information on the image with format matching simulation.py.
+        Show both robot-relative and world coordinates for clarity.
         
         Args:
             image (numpy.ndarray): Image to draw on
@@ -227,8 +234,79 @@ class EggDetectionNode(Node):
         Returns:
             numpy.ndarray: Image with debug information
         """
-        # Use the detector's draw_detections method to visualize the eggs
-        result = self.egg_detector.draw_detections(image, centers, radii, egg_info_list)
+        # Create a copy of the image for drawing
+        result = image.copy()
+        
+        # Draw each detection
+        for i, ((x, y), r) in enumerate(zip(centers, radii)):
+            # Default values in case egg_info_list doesn't have this egg
+            broken = False
+            coord_x = 0.0
+            coord_y = 0.0
+            world_x = 0.0
+            world_y = 0.0
+            
+            # Get egg info if available
+            if egg_info_list and i < len(egg_info_list):
+                egg_info = egg_info_list[i]
+                broken = egg_info.get('broken', False)
+                coord_x = egg_info.get('coordX', 0.0)
+                coord_y = egg_info.get('coordY', 0.0)
+                world_x = egg_info.get('worldX', 0.0)
+                world_y = egg_info.get('worldY', 0.0)
+            
+            status = "BROKEN" if broken else "OK"
+            color = (0, 0, 255) if broken else (0, 255, 0)  # Red for broken, green for OK
+            
+            # Draw the circle around the egg with appropriate color
+            cv2.circle(result, (x, y), r, color, 2)
+            
+            # Draw the center of the circle
+            cv2.circle(result, (x, y), 2, (0, 0, 255), 3)
+            
+            # Add label with egg number above the egg
+            cv2.putText(
+                result,
+                f"Egg #{i+1}",
+                (x - 20, y - r - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                color,
+                2
+            )
+            
+            # Add status and robot-relative coordinates below the egg
+            cv2.putText(
+                result,
+                f"{status} REL: ({coord_x:.2f}, {coord_y:.2f})",
+                (x - 20, y + r + 20),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                color,
+                2
+            )
+            
+            # Add world coordinates below
+            cv2.putText(
+                result,
+                f"WORLD: ({world_x:.2f}, {world_y:.2f})",
+                (x - 20, y + r + 40),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                (255, 165, 0),  # Orange color for world coordinates
+                2
+            )
+        
+        # Add total count
+        cv2.putText(
+            result,
+            f"Total eggs: {len(centers)}",
+            (10, 60),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (0, 0, 255),
+            2
+        )
         
         # Add robot position and orientation
         robot_x = self.egg_analyzer.robot_pose['x']
@@ -249,6 +327,7 @@ class EggDetectionNode(Node):
     def send_to_backend(self, egg_info_list):
         """
         Send egg information to the backend API.
+        Use world coordinates instead of robot-relative coordinates.
         
         Args:
             egg_info_list (list): List of egg information dictionaries
@@ -258,16 +337,23 @@ class EggDetectionNode(Node):
             
         try:
             for egg_info in egg_info_list:
+                # Create new dict with world coordinates instead of robot-relative coordinates
+                backend_data = {
+                    'coordX': egg_info['worldX'],  # Use world coordinates instead of robot-relative
+                    'coordY': egg_info['worldY'],  # Use world coordinates instead of robot-relative
+                    'broken': egg_info['broken']
+                }
+                
                 # Make API request to backend
                 response = requests.post(
                     self.backend_url,
-                    json=egg_info,
+                    json=backend_data,
                     headers={'Content-Type': 'application/json'},
                     timeout=1.0  # Short timeout to avoid blocking
                 )
                 
                 if response.status_code == 200:
-                    self.get_logger().debug(f'Successfully sent egg data: {egg_info}')
+                    self.get_logger().debug(f'Successfully sent egg data with world coordinates: {backend_data}')
                 else:
                     self.get_logger().warning(f'Failed to send egg data: {response.status_code}')
         except requests.exceptions.RequestException as e:
