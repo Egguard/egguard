@@ -1,0 +1,230 @@
+# EggGuard Computer Vision System
+
+## System Overview
+
+The EggGuard Computer Vision system is designed to detect brown chicken eggs on light-colored backgrounds using computer vision techniques. The system is implemented as a ROS2 package that processes images from a camera and identifies eggs in real-time.
+
+The system consists of two main components:
+1. **Main Node** (`main.py`): A ROS2 node that subscribes to camera images, processes frames at specified intervals, and publishes egg count.
+2. **Egg Detection Module** (`egg_detector.py`): A library of computer vision functions for detecting and analyzing eggs in images.
+
+## Architectural Design
+
+The architecture follows a modular design pattern to separate concerns and enable reusability:
+
+### Design Principles
+- **Modularity**: Separation of ROS2 node logic from computer vision algorithms
+- **Configurability**: Key parameters are configurable via launch file
+- **Performance Optimization**: Image downsampling to reduce computational load
+- **Robustness**: Multiple detection methods combined for better accuracy
+
+```
+egguard_computer_vision/
+├── egguard_computer_vision/
+│   ├── __init__.py
+│   ├── main.py          # ROS2 node implementation
+│   └── egg_detector.py  # Computer vision algorithms
+├── launch/
+│   └── egguard_vision.launch.py  # Launch file
+├── resource/
+│   └── egguard_computer_vision
+├── package.xml
+├── setup.cfg
+└── setup.py
+```
+
+## ROS2 Integration
+
+### Topics
+- **Subscribed**: `/camera/image_raw` (sensor_msgs/Image) - Raw camera feed
+- **Published**: `/egguard/egg_count` (std_msgs/Int32) - Number of eggs detected
+
+### Parameters
+- `processing_interval` (float, default: 3.0): Time in seconds between processing frames
+- `debug_mode` (bool, default: true): Enable visualization of detection results
+
+### Launch File
+The package includes a launch file (`egguard_vision.launch.py`) that allows configuring the processing interval and debug mode:
+
+```bash
+# Launch with default parameters
+ros2 launch egguard_computer_vision egguard_vision.launch.py
+
+# Launch with custom parameters
+ros2 launch egguard_computer_vision egguard_vision.launch.py processing_interval:=5.0 debug_mode:=false
+```
+
+## Computer Vision Algorithms
+
+The system uses multiple computer vision techniques to achieve robust egg detection across different lighting conditions and scenarios. These algorithms are implemented in the `egg_detector.py` module.
+
+### Image Preprocessing
+Before applying detection algorithms, each image undergoes preprocessing:
+
+1. **Resizing**: Images are resized to a target width (default: 640px) to reduce processing time while maintaining the aspect ratio
+2. **Grayscale Conversion**: Color images are converted to grayscale for certain detection methods
+3. **Gaussian Blur**: A 5x5 Gaussian blur is applied to reduce noise and improve detection quality
+
+```python
+def preprocess_image(image, target_width=640):
+    # Resize image to reduce computational load
+    height, width = image.shape[:2]
+    aspect_ratio = height / width
+    target_height = int(target_width * aspect_ratio)
+    resized = cv2.resize(image, (target_width, target_height))
+    
+    # Convert to grayscale
+    gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
+    
+    # Apply Gaussian blur to reduce noise
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    
+    return blurred
+```
+
+### Egg Detection Methods
+
+The system employs three complementary detection methods that are combined for robust results:
+
+#### 1. Hough Circle Transform
+Detects circular objects in the image using the Hough Circle Transform algorithm. This method is particularly effective for well-defined eggs with clear circular boundaries.
+
+```python
+def detect_eggs_hough(preprocessed_img):
+    # Apply Hough Circle Transform
+    circles = cv2.HoughCircles(
+        preprocessed_img,
+        cv2.HOUGH_GRADIENT,
+        dp=1,
+        minDist=20,
+        param1=50,
+        param2=30,
+        minRadius=10,
+        maxRadius=100
+    )
+    
+    # Process detected circles
+    # ...
+```
+
+#### 2. Contour-Based Detection
+Uses adaptive thresholding and contour detection to identify egg-shaped objects. This method works well for eggs with non-uniform lighting or partial occlusion.
+
+```python
+def detect_eggs_contour(preprocessed_img):
+    # Apply adaptive thresholding
+    thresh = cv2.adaptiveThreshold(
+        preprocessed_img,
+        255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY_INV,
+        11,
+        2
+    )
+    
+    # Apply morphological operations
+    kernel = np.ones((5, 5), np.uint8)
+    opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
+    
+    # Find contours
+    # ...
+```
+
+#### 3. Color-Based Detection
+Targets the specific color range of brown eggs using HSV color space filtering. This method is particularly useful when eggs have a distinct color compared to the background.
+
+```python
+def detect_eggs_color(image, preprocessed_img):
+    # Convert to HSV color space
+    hsv = cv2.cvtColor(cv2.resize(image, (preprocessed_img.shape[1], preprocessed_img.shape[0])), cv2.COLOR_BGR2HSV)
+    
+    # Define range for brown egg color in HSV
+    lower_brown = np.array([5, 50, 50])
+    upper_brown = np.array([30, 255, 255])
+    
+    # Create mask for brown color
+    mask = cv2.inRange(hsv, lower_brown, upper_brown)
+    
+    # Apply morphological operations
+    # ...
+```
+
+### Detection Fusion and Filtering
+
+The results from all three detection methods are combined and filtered to produce the final set of detected eggs.
+
+#### Method Fusion
+The `detect_eggs()` function calls all three detection methods and concatenates their results:
+
+```python
+def detect_eggs(image):
+    # Apply multiple detection methods
+    centers_hough, radii_hough = detect_eggs_hough(preprocessed)
+    centers_contour, radii_contour = detect_eggs_contour(preprocessed)
+    centers_color, radii_color = detect_eggs_color(original, preprocessed)
+    
+    # Combine results from different methods
+    all_centers = centers_hough + centers_contour + centers_color
+    all_radii = radii_hough + radii_contour + radii_color
+    
+    # Non-maximum suppression to remove overlapping detections
+    final_centers, final_radii = non_max_suppression(all_centers, all_radii)
+    
+    return final_centers, final_radii
+```
+
+#### Non-Maximum Suppression
+To remove duplicate detections of the same egg by different methods, a non-maximum suppression algorithm is applied:
+
+1. Sort detections by radius (larger first)
+2. Iteratively select the largest remaining detection
+3. Remove detections that overlap significantly with the selected one
+4. Repeat until all detections are processed
+
+This process ensures that each egg is counted only once, even if detected by multiple methods.
+
+### Visualization
+
+The `draw_detections()` function visualizes the detected eggs by:
+
+1. Drawing a green circle around each detected egg
+2. Marking the center with a small red circle
+3. Labeling each egg with a number
+4. Displaying the total egg count in the corner of the image
+
+This visualization is only shown when debug mode is enabled.
+
+## Performance Considerations
+
+### Computational Optimization
+- **Image Resizing**: Input images are resized to reduce computational load
+- **Processing Interval**: Images are processed at specified intervals (default: 3 seconds) rather than every frame (line 119 main.py)
+- **Early Filtering**: Small contours are filtered out early in the detection pipeline
+
+### Parameter Tuning
+Several parameters can be tuned to optimize detection based on specific conditions:
+
+- **Color Range**: The HSV range for brown eggs may need adjustment based on lighting conditions
+- **Circle Detection Parameters**: `param1` and `param2` in the Hough Circle Transform control sensitivity
+- **Morphological Operations**: Kernel size and iterations affect noise removal
+- **Overlap Threshold**: Controls duplicate elimination in non-maximum suppression
+
+## Limitations and Future Improvements
+
+### Current Limitations
+- Detection optimized for brown eggs on light backgrounds
+- Performance may degrade with significant occlusion between eggs
+- Static parameter values may not adapt to changing lighting conditions
+
+### Potential Improvements
+- **Machine Learning Approach**: Implement a deep learning object detector (YOLO, SSD, etc.) for improved accuracy
+- **Adaptive Parameter Tuning**: Automatically adjust parameters based on image conditions
+- **Tracking**: Implement object tracking to maintain consistent egg IDs across frames
+- **Classification**: Add capability to classify eggs by size, color, or quality
+- **3D Integration**: Combine with depth camera for improved occlusion handling
+
+## Conclusion
+
+The EggGuard Computer Vision system provides a robust solution for detecting chicken eggs using classical computer vision techniques. Its modular design allows for easy maintenance and extension, while the combination of multiple detection methods ensures resilience across different conditions. The system is optimized for performance by processing images at intervals and reducing resolution when needed.
+
+The package is ready for integration into a larger robotics system where egg detection is a component of a more complex workflow, such as automated egg collection or quality control systems.

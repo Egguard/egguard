@@ -100,6 +100,9 @@ sleep 2
 run_in_new_terminal "Web Video Server" "ros2 run web_video_server web_video_server"
 sleep 2
 
+run_in_new_terminal "OpenCV Egg Detection" "ros2 launch egguard_computer_vision egguard_vision.launch.py"
+sleep 2
+
 # Open browser with camera stream
 if command -v xdg-open &> /dev/null; then
     echo -e "${GREEN}Opening camera stream in browser...${NC}"
