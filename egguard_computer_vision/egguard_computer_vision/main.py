@@ -125,7 +125,7 @@ class EggDetectionNode(Node):
         self.yolo_raw_pub = self.create_publisher(
             Image,
             '/egguard/yolo_raw',
-            10
+           10
         )
         
         self.get_logger().info('Egg detection node subscribers and publishers initialized')
@@ -247,10 +247,10 @@ class EggDetectionNode(Node):
             self.egg_detector.show_live_yolo_processing(cv_image, results, egg_info_list)
             
             # Process image at specified interval
-            current_time = time.time()
-            if current_time - self.last_process_time >= self.processing_interval:
+        current_time = time.time()
+        if current_time - self.last_process_time >= self.processing_interval:
                 self.process_image(cv_image)
-                self.last_process_time = current_time
+            self.last_process_time = current_time
             
         except Exception as e:
             self.get_logger().error(f"Error in camera callback: {str(e)}")
@@ -280,7 +280,7 @@ class EggDetectionNode(Node):
                 cv_image = img_msg
             else:
                 try:
-                    cv_image = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding="bgr8")
+            cv_image = self.bridge.imgmsg_to_cv2(img_msg, desired_encoding="bgr8")
                 except CvBridgeError as e:
                     self.get_logger().error(f'CV Bridge error: {e}')
                     return
@@ -336,7 +336,7 @@ class EggDetectionNode(Node):
             # Send data to backend
             if egg_info_list:
                 self.send_to_backend(egg_info_list)
-            
+                
             # Publish processed images for RViz visualization
             try:
                 # Create YOLO raw visualization
