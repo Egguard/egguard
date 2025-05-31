@@ -46,6 +46,8 @@ qtcreator-*
 egguard_computer_vision/egguard_computer_vision/simulation_data/*
 !egguard_computer_vision/egguard_computer_vision/simulation_data/
 
+egguard_computer_vision/egguard_computer_vision/media_for_testing/*
+!egguard_computer_vision/egguard_computer_vision/media_for_testing/
 *~
 
 # Emacs
