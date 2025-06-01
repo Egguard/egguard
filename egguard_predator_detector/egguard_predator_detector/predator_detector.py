@@ -31,6 +31,7 @@ class PredatorDetector(Node):
             check_interval (float): Seconds between model inferences.
             cooldown (float): Minimum seconds between alerts.
             backend_url (str): Base URL for the backend API.
+            backend_active (bool): Whether to attempt to send alerts to the backend.
         """
         super().__init__('predator_detector')
 
@@ -39,13 +40,15 @@ class PredatorDetector(Node):
         self.declare_parameter('confidence_threshold', 0.80)
         self.declare_parameter('check_interval', 3.0)
         self.declare_parameter('cooldown', 10.0)
-        self.declare_parameter('backend_url', 'http://localhost:8080')  # Changed default
+        self.declare_parameter('backend_url', 'http://localhost:8080')
+        self.declare_parameter('backend_active', True)  # New parameter
 
         model_path = self.get_parameter('model_path').get_parameter_value().string_value
         self.confidence_threshold = self.get_parameter('confidence_threshold').get_parameter_value().double_value
         self.check_interval = self.get_parameter('check_interval').get_parameter_value().double_value
         self.cooldown = self.get_parameter('cooldown').get_parameter_value().double_value
-        self.backend_url_base = self.get_parameter('backend_url').get_parameter_value().string_value  # Renamed for clarity
+        self.backend_url_base = self.get_parameter('backend_url').get_parameter_value().string_value
+        self.is_backend_running = self.get_parameter('backend_active').get_parameter_value().bool_value # Read new parameter
 
         # Initialize utilities
         self.bridge = CvBridge()
@@ -114,45 +117,42 @@ class PredatorDetector(Node):
 
     def send_alert(self, label: str, prob: float):
         """
-        Sends an HTTP POST to the backend with the detection alert and image.
+        Sends an HTTP POST to the backend with the detection alert and image
+        if self.is_backend_running is True. Otherwise, logs the information.
 
         Args:
             label (str): Detected predator label.
             prob (float): Confidence score of the detection.
         """
         alert_text = f"Detected predator: {label} with confidence {prob:.2f}"
-
-        # Prepare notification data as a JSON string for the 'notification' part
-        # Assuming RegisterNotificationRequest schema expects an object like: {"text": "details"}
         notification_data = {"text": alert_text}
-
         _, img_encoded = cv2.imencode('.jpg', self.latest_frame)
-
-        # Prepare multipart/form-data payload
-        payload_files = {
-            'image': ('frame.jpg', img_encoded.tobytes(), 'image/jpeg')
-        }
-        # The 'notification' part is sent as a form field containing a JSON string
-        payload_data = {
-            'notification': json.dumps(notification_data)
-        }
-
-        robot_id = 1  # Hardcoded robot ID
-        # Construct URL based on the provided API path
+        payload_files = {'image': ('frame.jpg', img_encoded.tobytes(), 'image/jpeg')}
+        payload_data = {'notification': json.dumps(notification_data)}
+        robot_id = 1
         alert_url = f"{self.backend_url_base}/robots/{robot_id}/notifications"
 
-        try:
-            self.get_logger().info(f"[DEBUG] Sending alert to: {alert_url}")
-            self.get_logger().info(f"[DEBUG] Notification data (JSON string): {payload_data['notification']}")
+        self.get_logger().info(f"[DEBUG] Attempting to send alert. Backend active: {self.is_backend_running}")
+        self.get_logger().info(f"[DEBUG] Alert URL: {alert_url}")
+        self.get_logger().info(f"[DEBUG] Notification data (JSON string): {payload_data['notification']}")
 
-            resp = requests.post(alert_url, data=payload_data, files=payload_files)
-
-            if resp.status_code == 200:
-                self.get_logger().info(f"[INFO] Alert sent successfully. Response: {resp.text}")
-            else:
-                self.get_logger().error(f"[ERROR] Failed to send alert: {resp.status_code} - {resp.text}")
-        except Exception as e:
-            self.get_logger().error(f"[ERROR] Exception sending alert: {e}")
+        if self.is_backend_running:
+            try:
+                self.get_logger().info(f"[INFO] Sending alert to backend: {alert_url}")
+                resp = requests.post(alert_url, data=payload_data, files=payload_files)
+                if resp.status_code == 200:
+                    self.get_logger().info(f"[INFO] Alert sent successfully. Response: {resp.text}")
+                else:
+                    self.get_logger().error(f"[ERROR] Failed to send alert: {resp.status_code} - {resp.text}")
+            except requests.exceptions.ConnectionError as e:
+                self.get_logger().warn(f"[WARN] Could not connect to backend to send alert: {e}")
+            except Exception as e:
+                self.get_logger().error(f"[ERROR] Exception sending alert: {e}")
+        else:
+            self.get_logger().info("[INFO] Backend is not active. Alert not sent. Predator data logged above.")
+            # Log the image data size as an example of what could be sent
+            if img_encoded is not None:
+                self.get_logger().info(f"[DEBUG] Image data size (if sent): {len(img_encoded.tobytes())} bytes")
 
 
 def main(args=None):
