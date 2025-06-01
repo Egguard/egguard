@@ -9,6 +9,8 @@ import threading
 import requests
 import json  # Added import
 from tensorflow.keras.models import load_model
+from ament_index_python.packages import get_package_share_directory # Added import
+import os # Added import
 
 class PredatorDetector(Node):
     """
@@ -35,13 +37,20 @@ class PredatorDetector(Node):
         """
         super().__init__('predator_detector')
 
+        # Default model path relative to package share
+        default_model_path = os.path.join(
+            get_package_share_directory('egguard_predator_detector'),
+            'models',
+            'predator_model.keras'
+        )
+        self.declare_parameter('model_path', default_model_path)
+
         # Declare and read parameters
-        self.declare_parameter('model_path', 'models/predator_model.keras')
         self.declare_parameter('confidence_threshold', 0.80)
         self.declare_parameter('check_interval', 3.0)
         self.declare_parameter('cooldown', 10.0)
         self.declare_parameter('backend_url', 'http://localhost:8080')
-        self.declare_parameter('backend_active', True)  # New parameter
+        self.declare_parameter('backend_active', False)  # New parameter
 
         model_path = self.get_parameter('model_path').get_parameter_value().string_value
         self.confidence_threshold = self.get_parameter('confidence_threshold').get_parameter_value().double_value
