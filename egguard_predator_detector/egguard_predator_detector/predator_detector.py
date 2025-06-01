@@ -7,6 +7,7 @@ import numpy as np
 import time
 import threading
 import requests
+import json  # Added import
 from tensorflow.keras.models import load_model
 
 class PredatorDetector(Node):
@@ -29,7 +30,7 @@ class PredatorDetector(Node):
             confidence_threshold (float): Detection confidence threshold.
             check_interval (float): Seconds between model inferences.
             cooldown (float): Minimum seconds between alerts.
-            backend_url (str): URL for alert POST requests.
+            backend_url (str): Base URL for the backend API.
         """
         super().__init__('predator_detector')
 
@@ -38,13 +39,13 @@ class PredatorDetector(Node):
         self.declare_parameter('confidence_threshold', 0.80)
         self.declare_parameter('check_interval', 3.0)
         self.declare_parameter('cooldown', 10.0)
-        self.declare_parameter('backend_url', 'http://localhost:8000/api/alerts')
+        self.declare_parameter('backend_url', 'http://localhost:8080')  # Changed default
 
         model_path = self.get_parameter('model_path').get_parameter_value().string_value
         self.confidence_threshold = self.get_parameter('confidence_threshold').get_parameter_value().double_value
         self.check_interval = self.get_parameter('check_interval').get_parameter_value().double_value
         self.cooldown = self.get_parameter('cooldown').get_parameter_value().double_value
-        self.backend_url = self.get_parameter('backend_url').get_parameter_value().string_value
+        self.backend_url_base = self.get_parameter('backend_url').get_parameter_value().string_value  # Renamed for clarity
 
         # Initialize utilities
         self.bridge = CvBridge()
@@ -119,17 +120,37 @@ class PredatorDetector(Node):
             label (str): Detected predator label.
             prob (float): Confidence score of the detection.
         """
-        text = f"Detected predator: {label} with confidence {prob:.2f}"
+        alert_text = f"Detected predator: {label} with confidence {prob:.2f}"
+
+        # Prepare notification data as a JSON string for the 'notification' part
+        # Assuming RegisterNotificationRequest schema expects an object like: {"text": "details"}
+        notification_data = {"text": alert_text}
+
         _, img_encoded = cv2.imencode('.jpg', self.latest_frame)
-        files = {'image': ('frame.jpg', img_encoded.tobytes(), 'image/jpeg')}
-        data = {'text': text}
+
+        # Prepare multipart/form-data payload
+        payload_files = {
+            'image': ('frame.jpg', img_encoded.tobytes(), 'image/jpeg')
+        }
+        # The 'notification' part is sent as a form field containing a JSON string
+        payload_data = {
+            'notification': json.dumps(notification_data)
+        }
+
+        robot_id = 1  # Hardcoded robot ID
+        # Construct URL based on the provided API path
+        alert_url = f"{self.backend_url_base}/robots/{robot_id}/notifications"
 
         try:
-            resp = requests.post(self.backend_url, data=data, files=files)
+            self.get_logger().info(f"[DEBUG] Sending alert to: {alert_url}")
+            self.get_logger().info(f"[DEBUG] Notification data (JSON string): {payload_data['notification']}")
+
+            resp = requests.post(alert_url, data=payload_data, files=payload_files)
+
             if resp.status_code == 200:
-                self.get_logger().info("[INFO] Alert sent successfully.")
+                self.get_logger().info(f"[INFO] Alert sent successfully. Response: {resp.text}")
             else:
-                self.get_logger().error(f"[ERROR] Failed to send alert: {resp.status_code}")
+                self.get_logger().error(f"[ERROR] Failed to send alert: {resp.status_code} - {resp.text}")
         except Exception as e:
             self.get_logger().error(f"[ERROR] Exception sending alert: {e}")
 
