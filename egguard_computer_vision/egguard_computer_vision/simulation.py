@@ -308,8 +308,10 @@ def main():
     
     # Initialize detector and analyzer
     try:
-        egg_detector = EggDetector(model_path=args.model_path)
-        print('✅ YOLO detector initialized successfully')
+        # Set different confidence threshold based on whether we're using test pattern
+        confidence_threshold = 0.4 if args.input is None else 0.5
+        egg_detector = EggDetector(model_path=args.model_path, confidence_threshold=confidence_threshold)
+        print(f'✅ YOLO detector initialized successfully with confidence threshold: {confidence_threshold}')
         
         # Log model info
         model_info = egg_detector.get_model_info()
