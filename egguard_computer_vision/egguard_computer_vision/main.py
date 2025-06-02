@@ -58,11 +58,11 @@ class EggDetectionNode(Node):
         # Create subscription to camera topic with BEST_EFFORT reliability
         self.image_sub = self.create_subscription(
             Image,
-            '/camera/image_raw',  # Changed to the correct topic name
+            '/image',  # Changed to the correct topic name
             self.camera_callback,
             QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT)
         )
-        self.get_logger().info('Subscribed to camera topic: /camera/image_raw')
+        self.get_logger().info('Subscribed to camera topic: /image')
         
         # Create subscription to odometry topic to get robot pose
         self.odom_sub = self.create_subscription(
@@ -452,12 +452,12 @@ class EggDetectionNode(Node):
     def _check_image_reception(self):
         """Check if we're receiving images and log a warning if not."""
         if not hasattr(self, 'last_image_time'):
-            self.get_logger().warning('No images received yet. Check if camera is publishing to /camera/image_raw topic')
+            self.get_logger().warning('No images received yet. Check if camera is publishing to /image topic')
             return
             
         time_since_last_image = time.time() - self.last_image_time
         if time_since_last_image > 5.0:
-            self.get_logger().warning(f'No images received for {time_since_last_image:.1f} seconds. Check camera topic /camera/image_raw')
+            self.get_logger().warning(f'No images received for {time_since_last_image:.1f} seconds. Check camera topic /image')
 
 def main(args=None):
     """Main function to initialize and run the egg detection node."""
