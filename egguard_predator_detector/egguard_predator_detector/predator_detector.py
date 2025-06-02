@@ -77,7 +77,7 @@ class PredatorDetector(Node):
         # Subscribe to camera topic
         self.sub = self.create_subscription(
             Image,
-            '/camera/image_raw',
+            '/image',
             self.image_callback,
             10)
         self.get_logger().info("[DEBUG] Subscribed to /camera/image_raw topic.")
