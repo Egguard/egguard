@@ -13,11 +13,9 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         # Include all launch files from the launch directory
-        (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*.launch.py'))),
-        # Include all model files from the models directory
-        (os.path.join('share', package_name, 'models'), glob(os.path.join('models', '*.keras'))),
+        (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*.launch.py')))
     ],
-    install_requires=['setuptools', 'requests', 'tensorflow', 'opencv-python', 'numpy'],
+    install_requires=['setuptools'],
     zip_safe=True,
     maintainer='manu',
     maintainer_email='manuelborregales12@gmail.com',
