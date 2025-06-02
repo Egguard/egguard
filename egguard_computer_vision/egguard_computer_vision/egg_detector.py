@@ -530,6 +530,15 @@ class EggDetector:
             vis_image = image.copy()
             height, width = vis_image.shape[:2]
             
+            # Calculate new dimensions for larger display
+            # Maintain aspect ratio while scaling up
+            scale_factor = 2  # Increase this value for larger window
+            new_width = int(width * scale_factor)
+            new_height = int(height * scale_factor)
+            
+            # Resize the image for display
+            vis_image = cv2.resize(vis_image, (new_width, new_height))
+            
             # Store label positions to avoid overlaps
             label_positions = []
             
@@ -542,8 +551,8 @@ class EggDetector:
                     
                     for i, (box, conf) in enumerate(zip(boxes, confidences)):
                         if conf >= self.confidence_threshold:
-                            # Get bounding box
-                            x1, y1, x2, y2 = map(int, box)
+                            # Scale bounding box coordinates to new size
+                            x1, y1, x2, y2 = map(int, box * scale_factor)
                             
                             # Get egg information if available
                             egg_info = egg_info_list[egg_count] if egg_info_list and egg_count < len(egg_info_list) else None
@@ -570,8 +579,9 @@ class EggDetector:
                             if egg_info and 'worldX' in egg_info and 'worldY' in egg_info:
                                 text_lines.append(f"World Pos: ({egg_info['worldX']:.2f}, {egg_info['worldY']:.2f})")
                             
-                            # Calculate text dimensions
-                            text_size = cv2.getTextSize(text_lines[0], cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)[0]
+                            # Calculate text dimensions (scaled for larger display)
+                            font_scale = 0.5  # Increased font scale
+                            text_size = cv2.getTextSize(text_lines[0], cv2.FONT_HERSHEY_SIMPLEX, font_scale, 1)[0]
                             text_height = text_size[1] + 4
                             text_width = max(cv2.getTextSize(line, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)[0][0] for line in text_lines)
                             
@@ -593,8 +603,8 @@ class EggDetector:
                             best_position = None
                             for pos_x, pos_y in positions:
                                 # Check if the label would be within image bounds
-                                if (pos_x >= 0 and pos_x + text_width + 8 <= width and
-                                    pos_y >= 0 and pos_y + text_height * len(text_lines) + 4 <= height):
+                                if (pos_x >= 0 and pos_x + text_width + 8 <= new_width and
+                                    pos_y >= 0 and pos_y + text_height * len(text_lines) + 4 <= new_height):
                                     
                                     # Check for overlaps with existing labels
                                     label_rect = (pos_x, pos_y, text_width + 8, text_height * len(text_lines) + 4)
@@ -614,8 +624,8 @@ class EggDetector:
                             
                             # If no good position found, use the first position and clip to image bounds
                             if best_position is None:
-                                pos_x = max(0, min(x1, width - text_width - 8))
-                                pos_y = max(0, min(y1, height - text_height * len(text_lines) - 4))
+                                pos_x = max(0, min(x1, new_width - text_width - 8))
+                                pos_y = max(0, min(y1, new_height - text_height * len(text_lines) - 4))
                                 best_position = (pos_x, pos_y)
                             
                             label_x, label_y = best_position
@@ -630,24 +640,29 @@ class EggDetector:
                                         (0, 0, 0), -1)
                             cv2.addWeighted(overlay, 0.7, vis_image, 0.3, 0, vis_image)
                             
-                            # Draw text
+                            # Draw text with larger font
                             for j, line in enumerate(text_lines):
                                 y = label_y + (text_height * j) + text_height
-                                cv2.putText(vis_image, line, (label_x + 4, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                                cv2.putText(vis_image, line, (label_x + 4, y), 
+                                          cv2.FONT_HERSHEY_SIMPLEX, font_scale, (255, 255, 255), 2)
                             
                             egg_count += 1
             
-            # Add total count
+            # Add total count with larger font
             cv2.putText(vis_image, f"Total Eggs: {egg_count}", (10, 30),
-                       cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+                       cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 2)
             
-            # Show the image
+            # Show the image in a named window
+            cv2.namedWindow("Egg Detection", cv2.WINDOW_NORMAL)
+            cv2.resizeWindow("Egg Detection", new_width, new_height)
             cv2.imshow("Egg Detection", vis_image)
             cv2.waitKey(1)
             
         except Exception as e:
             self.log_debug(f"Error in visualization: {str(e)}")
             # Show original image if visualization fails
+            cv2.namedWindow("Egg Detection", cv2.WINDOW_NORMAL)
+            cv2.resizeWindow("Egg Detection", new_width, new_height)
             cv2.imshow("Egg Detection", image)
             cv2.waitKey(1)
 
