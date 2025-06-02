@@ -100,7 +100,7 @@ PARA USAR RECONOCIMIENTO OPENCV
     source ./install/setup.bash
     ros2 run image_tools showimage --ros-args -p show_image:=true -p reliability:=best_effort
 
-    #terminal 4 DETECCION OPENCV
+    #terminal 4 DETECCION YOLO
     export ROS_DOMAIN_ID=80
     source ./install/setup.bash
     ros2 launch egguard_computer_vision egguard_vision.launch.py
