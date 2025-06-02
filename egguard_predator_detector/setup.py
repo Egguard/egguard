@@ -21,7 +21,6 @@ setup(
     maintainer_email='manuelborregales12@gmail.com',
     description='TODO: Package description',
     license='TODO: License declaration',
-    tests_require=['pytest'],
     entry_points={
         'console_scripts': [
             'predator_detector = egguard_predator_detector.predator_detector:main',
