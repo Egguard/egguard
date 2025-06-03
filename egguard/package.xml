@@ -20,6 +20,7 @@
     <exec_depend>egguard_computer_vision</exec_depend>
     <exec_depend>async_web_server_cpp</exec_depend>
     <exec_depend>web_video_server</exec_depend>    
+    <exec_depend>egguard_predator_detector</exec_depend>    
     <export>
         <build_type>ament_cmake</build_type>
     </export>

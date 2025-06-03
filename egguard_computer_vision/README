@@ -1,230 +1,221 @@
-# EggGuard Computer Vision System
+# EggGuard Computer Vision
 
-## System Overview
+A ROS2 package for detecting and analyzing eggs using computer vision techniques, specifically designed for the EggGuard robot system.
 
-The EggGuard Computer Vision system is designed to detect brown chicken eggs on light-colored backgrounds using computer vision techniques. The system is implemented as a ROS2 package that processes images from a camera and identifies eggs in real-time.
+## Overview
 
-The system consists of two main components:
-1. **Main Node** (`main.py`): A ROS2 node that subscribes to camera images, processes frames at specified intervals, and publishes egg count.
-2. **Egg Detection Module** (`egg_detector.py`): A library of computer vision functions for detecting and analyzing eggs in images.
+EggGuard Computer Vision is a specialized ROS2 package that combines YOLOv8n deep learning with traditional computer vision techniques to detect, analyze, and track chicken eggs in poultry farm environments. The package processes camera images to identify eggs, determine their condition (broken or intact), and calculate their positions in both robot-relative and world coordinates.
 
-## Architectural Design
+## System Architecture
 
-The architecture follows a modular design pattern to separate concerns and enable reusability:
-
-### Design Principles
-- **Modularity**: Separation of ROS2 node logic from computer vision algorithms
-- **Configurability**: Key parameters are configurable via launch file
-- **Performance Optimization**: Image downsampling to reduce computational load
-- **Robustness**: Multiple detection methods combined for better accuracy
+### 1. Image Acquisition and Processing Flow
 
 ```
-egguard_computer_vision/
-├── egguard_computer_vision/
-│   ├── __init__.py
-│   ├── main.py          # ROS2 node implementation
-│   └── egg_detector.py  # Computer vision algorithms
-├── launch/
-│   └── egguard_vision.launch.py  # Launch file
-├── resource/
-│   └── egguard_computer_vision
-├── package.xml
-├── setup.cfg
-└── setup.py
+Camera Topic (/camera/image_raw) for Gazebo or /image for real robot
+        ↓
+EggDetectionNode (main.py)
+        ↓
+    EggDetector (egg_detector.py)
+        ↓
+    EggAnalyzer (egg_analysis.py)
+        ↓
+    Data Publication & Backend Communication
 ```
 
-## ROS2 Integration
+### 2. Component Details
 
-### Topics
-- **Subscribed**: `/camera/image_raw` (sensor_msgs/Image) - Raw camera feed
-- **Published**: `/egguard/egg_count` (std_msgs/Int32) - Number of eggs detected
+#### 2.1 EggDetectionNode (main.py)
+- **Input Topics**:
+  - `/camera/image_raw`: Raw camera images (sensor_msgs/Image)
+  - `/odom`: Robot odometry data (nav_msgs/Odometry)
+  - `/camera/camera_info`: Camera parameters (std_msgs/String)
 
-### Parameters
-- `processing_interval` (float, default: 3.0): Time in seconds between processing frames
-- `debug_mode` (bool, default: true): Enable visualization of detection results
+- **Output Topics**:
+  - `/egguard/egg_count`: Number of detected eggs (std_msgs/Int32)
+  - `/egguard/egg_data`: Detailed egg information (std_msgs/String)
+  - `/egguard/processed_image`: Visualization of detections (sensor_msgs/Image)
+  - `/egguard/yolo_raw`: Raw YOLO detection visualization (sensor_msgs/Image)
 
-### Launch File
-The package includes a launch file (`egguard_vision.launch.py`) that allows configuring the processing interval and debug mode:
+#### 2.2 EggDetector (egg_detector.py)
+- Implements YOLOv8n-based egg detection
+- Features:
+  - Preprocessing of input images
+  - YOLO model inference
+  - Non-maximum suppression for overlapping detections
+  - Visualization of detections
+  - Fallback to Hough circles if YOLO fails
 
+#### 2.3 EggAnalyzer (egg_analysis.py)
+- Analyzes detected eggs for:
+  - Validation of egg detection
+  - Broken egg detection using texture analysis
+  - Coordinate conversion (image → robot → world)
+  - Position calculation using camera parameters
+
+## Detailed Processing Flow
+
+1. **Image Reception**:
+   - Images arrive via `/camera/image_raw` topic
+   - Converted from ROS message to OpenCV format using cv_bridge
+
+2. **Egg Detection**:
+   - Image preprocessing (resizing, normalization)
+   - YOLOv8n inference for egg detection
+   - Extraction of egg centers and radii
+   - Non-maximum suppression to remove duplicates
+
+3. **Egg Analysis**:
+   - Validation of detected eggs
+   - Broken egg detection using:
+     - Edge detection
+     - Texture analysis
+     - Color profile analysis
+   - Position calculation:
+     - Image coordinates → Robot-relative coordinates
+     - Robot-relative coordinates → World coordinates
+
+4. **Data Publication**:
+   - Egg count published to `/egguard/egg_count`
+   - Detailed egg data published to `/egguard/egg_data`
+   - Visualization images published to `/egguard/processed_image` and `/egguard/yolo_raw`
+
+5. **Backend Communication**:
+   - Egg data sent to configurable backend API
+   - Includes world coordinates and broken status
+   - Configurable via environment variable `EGGUARD_BACKEND_URL`
+
+## Testing and Simulation
+
+The package includes a simulation tool (`simulation.py`) for testing the detection and analysis pipeline without ROS2.
+
+### Using simulation.py
+
+1. **Basic Usage**:
 ```bash
-# Launch with default parameters
+python3 simulation.py --model_path ./../../egguard_models/best.pt
+```
+
+2. **Testing with an Image**:
+```bash
+python3 simulation.py --input media_for_testing/egg_image_3.jpg --model_path ./../../egguard_models/best.pt
+```
+
+3. **Testing with a Video**:
+```bash
+python3 simulation.py --input media_for_testing/video_huevos.mp4 --model_path ./../../egguard_models/best.pt
+```
+
+Note: Ensure your test media is in the `media_for_testing` folder.
+
+### Simulation Features
+
+- Tests YOLO detection pipeline
+- Visualizes detections in real-time
+- Shows egg status (broken/OK)
+- Displays coordinates
+- Saves results to:
+  - `simulation_data/egg_detection_result.jpg`
+  - `simulation_data/egg_data.json`
+
+## Configuration
+
+### Environment Variables
+
+- `EGGUARD_BACKEND_URL`: Backend API URL (default: `http://localhost:8081/api/v1/robots/1/eggs`)
+- `EGGUARD_MODEL_PATH`: Path to YOLO model file
+
+### Camera Parameters
+
+Default camera parameters (configurable via `/camera/camera_info`):
+```python
+{
+    'height_mm': 150,           # Camera height from ground
+    'angle_rad': 0.5,           # Camera tilt angle
+    'offset_x_mm': 0,           # X offset from robot center
+    'offset_y_mm': 69,          # Y offset from robot center
+    'focal_length_pixels': 800, # Focal length
+    'fov_h_rad': 1.05          # Horizontal FOV
+}
+```
+
+## Dependencies
+
+- ROS2 (Humble or later)
+- OpenCV 4.x
+- NumPy
+- cv_bridge
+- tf2_ros
+- ultralytics (for YOLOv8n)
+- requests (for backend API)
+
+## Installation
+
+1. Clone the repository:
+```bash
+cd ~/ros2_ws/src
+git clone https://github.com/Egguard/egguard.git
+```
+
+2. Install dependencies:
+```bash
+cd ~/ros2_ws
+rosdep install --from-paths src --ignore-src -r -y
+```
+
+3. Build the package:
+```bash
+colcon build --packages-select egguard_computer_vision
+```
+
+4. Source the setup file:
+```bash
+source ~/ros2_ws/install/setup.bash
+```
+
+## Usage
+
+1. Launch the node:
+```bash
 ros2 launch egguard_computer_vision egguard_vision.launch.py
-
-# Launch with custom parameters
-ros2 launch egguard_computer_vision egguard_vision.launch.py processing_interval:=5.0 debug_mode:=false
 ```
 
-## Computer Vision Algorithms
-
-The system uses multiple computer vision techniques to achieve robust egg detection across different lighting conditions and scenarios. These algorithms are implemented in the `egg_detector.py` module.
-
-### Image Preprocessing
-Before applying detection algorithms, each image undergoes preprocessing:
-
-1. **Resizing**: Images are resized to a target width (default: 640px) to reduce processing time while maintaining the aspect ratio
-2. **Grayscale Conversion**: Color images are converted to grayscale for certain detection methods
-3. **Gaussian Blur**: A 5x5 Gaussian blur is applied to reduce noise and improve detection quality
-
-```python
-def preprocess_image(image, target_width=640):
-    # Resize image to reduce computational load
-    height, width = image.shape[:2]
-    aspect_ratio = height / width
-    target_height = int(target_width * aspect_ratio)
-    resized = cv2.resize(image, (target_width, target_height))
-    
-    # Convert to grayscale
-    gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
-    
-    # Apply Gaussian blur to reduce noise
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    
-    return blurred
+2. Monitor the output topics:
+```bash
+ros2 topic echo /egguard/egg_data
+ros2 topic echo /egguard/egg_count
 ```
 
-### Egg Detection Methods
-
-The system employs three complementary detection methods that are combined for robust results:
-
-#### 1. Hough Circle Transform
-Detects circular objects in the image using the Hough Circle Transform algorithm. This method is particularly effective for well-defined eggs with clear circular boundaries.
-
-```python
-def detect_eggs_hough(preprocessed_img):
-    # Apply Hough Circle Transform
-    circles = cv2.HoughCircles(
-        preprocessed_img,
-        cv2.HOUGH_GRADIENT,
-        dp=1,
-        minDist=20,
-        param1=50,
-        param2=30,
-        minRadius=10,
-        maxRadius=100
-    )
-    
-    # Process detected circles
-    # ...
+3. View the visualization:
+```bash
+ros2 run rqt_image_view rqt_image_view /egguard/processed_image
 ```
 
-#### 2. Contour-Based Detection
-Uses adaptive thresholding and contour detection to identify egg-shaped objects. This method works well for eggs with non-uniform lighting or partial occlusion.
+## Troubleshooting
 
-```python
-def detect_eggs_contour(preprocessed_img):
-    # Apply adaptive thresholding
-    thresh = cv2.adaptiveThreshold(
-        preprocessed_img,
-        255,
-        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY_INV,
-        11,
-        2
-    )
-    
-    # Apply morphological operations
-    kernel = np.ones((5, 5), np.uint8)
-    opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
-    
-    # Find contours
-    # ...
-```
+1. **No eggs detected**:
+   - Check camera image quality
+   - Verify YOLO model is loaded correctly
+   - Adjust confidence threshold if needed
 
-#### 3. Color-Based Detection
-Targets the specific color range of brown eggs using HSV color space filtering. This method is particularly useful when eggs have a distinct color compared to the background.
+2. **Incorrect positions**:
+   - Verify camera parameters
+   - Check odometry data is being received
+   - Calibrate camera parameters if needed
 
-```python
-def detect_eggs_color(image, preprocessed_img):
-    # Convert to HSV color space
-    hsv = cv2.cvtColor(cv2.resize(image, (preprocessed_img.shape[1], preprocessed_img.shape[0])), cv2.COLOR_BGR2HSV)
-    
-    # Define range for brown egg color in HSV
-    lower_brown = np.array([5, 50, 50])
-    upper_brown = np.array([30, 255, 255])
-    
-    # Create mask for brown color
-    mask = cv2.inRange(hsv, lower_brown, upper_brown)
-    
-    # Apply morphological operations
-    # ...
-```
+3. **Backend communication issues**:
+   - Verify backend URL is correct
+   - Check network connectivity
+   - Monitor backend API logs
 
-### Detection Fusion and Filtering
+## License
 
-The results from all three detection methods are combined and filtered to produce the final set of detected eggs.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-#### Method Fusion
-The `detect_eggs()` function calls all three detection methods and concatenates their results:
+## Contributors
 
-```python
-def detect_eggs(image):
-    # Apply multiple detection methods
-    centers_hough, radii_hough = detect_eggs_hough(preprocessed)
-    centers_contour, radii_contour = detect_eggs_contour(preprocessed)
-    centers_color, radii_color = detect_eggs_color(original, preprocessed)
-    
-    # Combine results from different methods
-    all_centers = centers_hough + centers_contour + centers_color
-    all_radii = radii_hough + radii_contour + radii_color
-    
-    # Non-maximum suppression to remove overlapping detections
-    final_centers, final_radii = non_max_suppression(all_centers, all_radii)
-    
-    return final_centers, final_radii
-```
+- [Alejandro Rosado Jiménez](https://github.com/Xalex79)
 
-#### Non-Maximum Suppression
-To remove duplicate detections of the same egg by different methods, a non-maximum suppression algorithm is applied:
+## Acknowledgments
 
-1. Sort detections by radius (larger first)
-2. Iteratively select the largest remaining detection
-3. Remove detections that overlap significantly with the selected one
-4. Repeat until all detections are processed
-
-This process ensures that each egg is counted only once, even if detected by multiple methods.
-
-### Visualization
-
-The `draw_detections()` function visualizes the detected eggs by:
-
-1. Drawing a green circle around each detected egg
-2. Marking the center with a small red circle
-3. Labeling each egg with a number
-4. Displaying the total egg count in the corner of the image
-
-This visualization is only shown when debug mode is enabled.
-
-## Performance Considerations
-
-### Computational Optimization
-- **Image Resizing**: Input images are resized to reduce computational load
-- **Processing Interval**: Images are processed at specified intervals (default: 3 seconds) rather than every frame (line 119 main.py)
-- **Early Filtering**: Small contours are filtered out early in the detection pipeline
-
-### Parameter Tuning
-Several parameters can be tuned to optimize detection based on specific conditions:
-
-- **Color Range**: The HSV range for brown eggs may need adjustment based on lighting conditions
-- **Circle Detection Parameters**: `param1` and `param2` in the Hough Circle Transform control sensitivity
-- **Morphological Operations**: Kernel size and iterations affect noise removal
-- **Overlap Threshold**: Controls duplicate elimination in non-maximum suppression
-
-## Limitations and Future Improvements
-
-### Current Limitations
-- Detection optimized for brown eggs on light backgrounds
-- Performance may degrade with significant occlusion between eggs
-- Static parameter values may not adapt to changing lighting conditions
-
-### Potential Improvements
-- **Machine Learning Approach**: Implement a deep learning object detector (YOLO, SSD, etc.) for improved accuracy
-- **Adaptive Parameter Tuning**: Automatically adjust parameters based on image conditions
-- **Tracking**: Implement object tracking to maintain consistent egg IDs across frames
-- **Classification**: Add capability to classify eggs by size, color, or quality
-- **3D Integration**: Combine with depth camera for improved occlusion handling
-
-## Conclusion
-
-The EggGuard Computer Vision system provides a robust solution for detecting chicken eggs using classical computer vision techniques. Its modular design allows for easy maintenance and extension, while the combination of multiple detection methods ensures resilience across different conditions. The system is optimized for performance by processing images at intervals and reducing resolution when needed.
-
-The package is ready for integration into a larger robotics system where egg detection is a component of a more complex workflow, such as automated egg collection or quality control systems.
+- This package was developed for the EggGuard robot system
+- Special thanks to the ROS2 and OpenCV communities

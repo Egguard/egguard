@@ -100,12 +100,13 @@ PARA USAR RECONOCIMIENTO OPENCV
     source ./install/setup.bash
     ros2 run image_tools showimage --ros-args -p show_image:=true -p reliability:=best_effort
 
-    #terminal 4 DETECCION OPENCV
+    #terminal 4 DETECCION YOLO
     export ROS_DOMAIN_ID=80
-    source ./install/setup.bash
+    source ./install/setup  .bash
     ros2 launch egguard_computer_vision egguard_vision.launch.py
 
     #terminal 5 MOVIMIENTO MANUAL TECLADO ROBOT REAL
+    export ROS_DOMAIN_ID=80
     source ./install/setup.bash
     ros2 run turtlebot3_teleop teleop_keyboard
 
@@ -116,4 +117,5 @@ PARA USAR RECONOCIMIENTO OPENCV
 ps #saldrá lista de procesos activos, busca uno que se llame gzclient
 kill NUMERO_PROCESO
 
-
+colcon build --packages-select egguard_predator_detector
+ros2 launch egguard_predator_detector predator_detector.launch.py

@@ -1,0 +1,2 @@
+docker build -t predator-detector .
+docker run -p 8501:8501 predator-detector

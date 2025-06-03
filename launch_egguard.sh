@@ -76,7 +76,7 @@ echo -e "${GREEN}Launching EggGuard components in separate terminals...${NC}"
 run_in_new_terminal "EggGuard World" "ros2 launch egguard_world egguard_world.launch.py"
 sleep $wait_time
 
-run_in_new_terminal "Provide Map" "ros2 launch egguard_nav2_system provide_map.launch.py use_sim_time:=True"
+run_in_new_terminal "Provide Map" "ros2 launch egguard_nav2_system provide_map.launch.py use_sim_time:=False"
 sleep $wait_time
 
 run_in_new_terminal "Load Map" "ros2 service call /map_server/load_map nav2_msgs/srv/LoadMap \"{map_url: $HOME/egguard/egguard_nav2_system/config/my_map.yaml}\""
@@ -103,12 +103,15 @@ sleep 2
 run_in_new_terminal "OpenCV Egg Detection" "ros2 launch egguard_computer_vision egguard_vision.launch.py"
 sleep 2
 
+run_in_new_terminal "Predator Detector" "ros2 launch egguard_predator_detector predator_detector.launch.py"
+sleep 2
+
 # Open browser with camera stream
 if command -v xdg-open &> /dev/null; then
     echo -e "${GREEN}Opening camera stream in browser...${NC}"
     xdg-open http://0.0.0.0:8080/stream?topic=/camera/image_raw
 elif command -v firefox &> /dev/null; then
-    firefox http://0.0.0.0:8080/stream?topic=/camera/image_raw
+    firefox http://0.0.0.0:8080/stream?topic=/image
 elif command -v google-chrome &> /dev/null; then
     google-chrome http://0.0.0.0:8080/stream?topic=/camera/image_raw
 else
