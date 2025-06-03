@@ -1,27 +1,22 @@
 import rclpy
+import os
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 import cv2
-import numpy as np
 import time
 import threading
 import requests
-import json  # Added import
-from tensorflow.keras.models import load_model
-from tensorflow.keras.applications.mobilenet_v3 import preprocess_input # Changed to MobileNetV3
-from tensorflow.keras.preprocessing import image # Added for img_to_array
-from datetime import datetime, timezone # Added for ISO timestamp
-from ament_index_python.packages import get_package_share_directory # Added import
-import os # Added import
+import json
+from ament_index_python.packages import get_package_share_directory
+from rclpy.qos import ReliabilityPolicy, QoSProfile
 
 class PredatorDetector(Node):
     """
-    ROS 2 node for detecting predators in camera images using a Keras model.
-    Periodically processes incoming images, checks for predators, and sends alerts.
+    ROS 2 node for detecting predators in camera images using a remote ML inference API.
+    Periodically processes incoming images, checks for predators via API, and sends alerts.
 
     Attributes:
-        model (keras.Model): Loaded predator detection model.
         bridge (CvBridge): ROS–OpenCV bridge.
         latest_frame (np.ndarray): Last received camera frame.
         last_detection_time (float): Timestamp of the last detection.
@@ -32,57 +27,52 @@ class PredatorDetector(Node):
         Initialize the PredatorDetector node, declare parameters, load model, and set up subscriptions and timers.
 
         ROS parameters:
-            model_path (str): Path to the .keras model file.
             confidence_threshold (float): Detection confidence threshold.
             check_interval (float): Seconds between model inferences.
             cooldown (float): Minimum seconds between alerts.
             backend_url (str): Base URL for the backend API.
             backend_active (bool): Whether to attempt to send alerts to the backend.
+            ml_api_url (str): URL for the ML inference API.
         """
         super().__init__('predator_detector')
 
-        # Default model path relative to package share
-        default_model_path = os.path.join(
-            get_package_share_directory('egguard_predator_detector'),
-            'models',
-            'predator_model.keras'
-        )
-        self.declare_parameter('model_path', default_model_path)
-
         # Declare and read parameters
-        self.declare_parameter('confidence_threshold', 0.80)
-        self.declare_parameter('check_interval', 3.0)
+        self.declare_parameter('confidence_threshold', 0.70)
+        self.declare_parameter('check_interval', 5.0)
         self.declare_parameter('cooldown', 10.0)
-        self.declare_parameter('backend_url', 'http://localhost:8080')
-        self.declare_parameter('backend_active', False)  # New parameter
+        self.declare_parameter('backend_url', 'http://localhost:8081/api/v1')
+        self.declare_parameter('backend_active', True)  # New parameter
+        self.declare_parameter('ml_api_url', 'http://localhost:8501')  # ML inference API
 
-        model_path = self.get_parameter('model_path').get_parameter_value().string_value
         self.confidence_threshold = self.get_parameter('confidence_threshold').get_parameter_value().double_value
         self.check_interval = self.get_parameter('check_interval').get_parameter_value().double_value
         self.cooldown = self.get_parameter('cooldown').get_parameter_value().double_value
         self.backend_url_base = self.get_parameter('backend_url').get_parameter_value().string_value
         self.is_backend_running = self.get_parameter('backend_active').get_parameter_value().bool_value # Read new parameter
+        self.ml_api_url = self.get_parameter('ml_api_url').get_parameter_value().string_value
 
         # Initialize utilities
         self.bridge = CvBridge()
         self.latest_frame = None
         self.last_detection_time = 0.0
         self.frame_lock = threading.Lock() # Initialize the lock
+        
+        # Predator detection configuration
+        self.predator_labels = ['aguila', 'mapache', 'zorro']
+        self.predator_messages = {
+            "aguila": "¡Se ha detectado un aguila en tu granja!",
+            "mapache": "¡Se ha detectado un mapache en tu granja!",
+            "zorro": "¡Se ha detectado un zorro en tu granja!"
+        }
+        self.notification_severity = "WARNING"
 
-        # Load Keras model
-        self.get_logger().info(f"[DEBUG] Loading model from: {model_path}")
-        self.model = load_model(model_path)
-        self.get_logger().info("[DEBUG] Model loaded successfully.")
-
-        # Subscribe to camera topic
         self.sub = self.create_subscription(
             Image,
             '/image',
             self.image_callback,
-            10)
+            QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT))
         self.get_logger().info("[DEBUG] Subscribed to /camera/image_raw topic.")
 
-        # Timer for periodic predator checks
         self.timer = self.create_timer(self.check_interval, self.check_for_predators)
         self.get_logger().info(f"[DEBUG] Timer started: checking every {self.check_interval} seconds.")
 
@@ -103,7 +93,7 @@ class PredatorDetector(Node):
 
     def check_for_predators(self):
         """
-        Periodically called by timer. Runs the model on the latest frame if cooldown has elapsed.
+        Periodically called by timer. Sends the latest frame to ML API for inference.
         If a predator is detected above the confidence threshold, triggers an alert.
         """
         frame_to_process = None
@@ -118,82 +108,88 @@ class PredatorDetector(Node):
         if now - self.last_detection_time < self.cooldown:
             return
 
-        # Preprocess image for model
-        img_resized = cv2.resize(frame_to_process, (224, 224)) # frame_to_process is OpenCV BGR
-        img_rgb = cv2.cvtColor(img_resized, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB (still an OpenCV image/Numpy array)
+        """
+        # For testing: load a saved image instead of using the live frame
+        test_image_path = os.path.join(get_package_share_directory('egguard_predator_detector'), 'testing', 'zorro.jpg')
 
-        # Align with Colab preprocessing style using Keras image utilities
-        img_array = image.img_to_array(img_rgb) # Converts to np.array, ensures float32
-        img_array = np.expand_dims(img_array, axis=0) # Add batch dimension
-        img_processed = preprocess_input(img_array) # Using preprocess_input from MobileNetV3
+        frame_to_process = cv2.imread(test_image_path)
+        if frame_to_process is None:
+            self.get_logger().error(f"[ERROR] Could not load test image from {test_image_path}")
+            return
+        """
 
+        _, img_encoded = cv2.imencode('.jpg', frame_to_process)
+        if img_encoded is None:
+            self.get_logger().error("[ERROR] Failed to encode frame for ML API")
+            return
 
-        # Predict probabilities: [aguila, mapache, no_depredador, zorro]
-        preds = self.model.predict(img_processed)[0]
-        idx = np.argmax(preds)
-        prob = preds[idx]
+        img_bytes = img_encoded.tobytes()
+        
+        try:
+            files = {'file': ('frame.jpg', img_bytes, 'image/jpeg')}
+            response = requests.post(f"{self.ml_api_url}/predict", files=files, timeout=5.0)
+            
+            if response.status_code != 200:
+                self.get_logger().error(f"[ERROR] ML API request failed: {response.status_code} - {response.text}")
+                return
+                
+            result = response.json()
+            label = result.get('prediction', 'unknown')
+            prob = result.get('probability', 0.0)
+            
+            self.get_logger().debug(f"[DEBUG] ML API result: {label} (prob={prob:.2f})")
+            
+            if label in self.predator_labels and prob >= self.confidence_threshold:
+                self.get_logger().info(f"[INFO] Detected predator: {label} (prob={prob:.2f})")
+                self.last_detection_time = now
+                threading.Thread(target=self.send_alert, args=(label, img_bytes)).start()
+                
+        except requests.exceptions.Timeout:
+            self.get_logger().warn("[WARN] ML API request timed out")
+        except requests.exceptions.ConnectionError:
+            self.get_logger().warn("[WARN] Could not connect to ML API")
+        except Exception as e:
+            self.get_logger().error(f"[ERROR] Exception calling ML API: {e}")
 
-        predator_labels = {0: 'aguila', 1: 'mapache', 3: 'zorro'}
-        if idx in predator_labels and prob >= self.confidence_threshold:
-            label = predator_labels[idx]
-            self.get_logger().info(f"[INFO] Detected predator: {label} (prob={prob:.2f})")
-            self.last_detection_time = now
-            threading.Thread(target=self.send_alert, args=(label, prob)).start()
-
-    def send_alert(self, label: str, prob: float):
+    def send_alert(self, label: str, frame: bytes):
         """
         Sends an HTTP POST to the backend with the detection alert and image
         if self.is_backend_running is True. Otherwise, logs the information.
 
         Args:
             label (str): Detected predator label.
-            prob (float): Confidence score of the detection.
+            prob (float): Detection probability.
+            frame (bytes): The frame where the predator was detected.
         """
         
-        predator_messages = {
-            "aguila": "Se ha encontrado un aguila! Ten cuidado para que no se lleve tus huevos.",
-            "mapache": "Se ha encontrado un mapache! Asegura tus contenedores de basura y protege a las gallinas.",
-            "zorro": "Se ha encontrado un zorro! Mantén a salvo a tus aves."
-        }
-        message_text = predator_messages.get(label, f"¡Alerta de depredador! Se ha detectado: {label}.")
+        message_text = self.predator_messages.get(label, f"¡Alerta de depredador! Se ha detectado un {label}.")
 
-        # Construct the RegisterNotificationRequest payload
         notification_payload_dict = {
             "message": message_text,
-            "severity": "WARNING" 
+            "severity": self.notification_severity 
         }
         
-        img_encoded_bytes = None
-        with self.frame_lock: # Acquire lock before accessing latest_frame
-            if self.latest_frame is not None:
-                _, img_encoded = cv2.imencode('.jpg', self.latest_frame)
-                if img_encoded is not None:
-                    img_encoded_bytes = img_encoded.tobytes()
-            else:
-                self.get_logger().warn("[WARN] Latest frame is None, cannot encode image for alert.")
-                # Decide if you want to send an alert without an image or not send at all
-                # For now, we'll allow sending without an image if encoding fails or frame is None
+        # Create multipart form data properly
+        files = {
+            'notification': (None, json.dumps(notification_payload_dict), 'application/json')
+        }
         
-        payload_files = None
-        if img_encoded_bytes:
-            payload_files = {'image': ('frame.jpg', img_encoded_bytes, 'image/jpeg')}
+        if frame:
+            files['image'] = ('frame.jpg', frame, 'image/jpeg')
         
-        # The backend expects the JSON data as a form field named 'notification'
-        payload_data = {'notification': json.dumps(notification_payload_dict)}
-        
-        robot_id = 1 # This might be part of farmId or another ID in the new payload. Kept for URL structure.
+        robot_id = 1
         alert_url = f"{self.backend_url_base}/robots/{robot_id}/notifications"
 
         self.get_logger().info(f"[DEBUG] Attempting to send alert. Backend active: {self.is_backend_running}")
         self.get_logger().info(f"[DEBUG] Alert URL: {alert_url}")
-        self.get_logger().info(f"[DEBUG] Notification data (JSON string): {payload_data['notification']}")
+        self.get_logger().info(f"[DEBUG] Notification data (JSON string): {files}")
 
         if self.is_backend_running:
             try:
                 self.get_logger().info(f"[INFO] Sending alert to backend: {alert_url}")
-                # Send the JSON as a form field 'notification' and the image as a file
-                resp = requests.post(alert_url, data=payload_data, files=payload_files)
-                if resp.status_code == 200:
+                resp = requests.post(alert_url, files=files)
+
+                if resp.status_code == 201:
                     self.get_logger().info(f"[INFO] Alert sent successfully. Response: {resp.text}")
                 else:
                     self.get_logger().error(f"[ERROR] Failed to send alert: {resp.status_code} - {resp.text}")
@@ -203,9 +199,8 @@ class PredatorDetector(Node):
                 self.get_logger().error(f"[ERROR] Exception sending alert: {e}")
         else:
             self.get_logger().info("[INFO] Backend is not active. Alert not sent. Predator data logged above.")
-            # Log the image data size as an example of what could be sent
-            if img_encoded_bytes:
-                self.get_logger().info(f"[DEBUG] Image data size (if sent): {len(img_encoded_bytes)} bytes")
+            if frame:
+                self.get_logger().info(f"[DEBUG] Image data size (if sent): {len(frame)} bytes")
 
 def main(args=None):
     """
