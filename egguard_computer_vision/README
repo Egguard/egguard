@@ -11,7 +11,7 @@ EggGuard Computer Vision is a specialized ROS2 package that combines YOLOv8n dee
 ### 1. Image Acquisition and Processing Flow
 
 ```
-Camera Topic (/camera/image_raw)
+Camera Topic (/camera/image_raw) for Gazebo or /image for real robot
         ↓
 EggDetectionNode (main.py)
         ↓
